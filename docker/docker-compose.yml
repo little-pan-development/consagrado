@@ -1,0 +1,33 @@
+version: '3.6'
+services:
+  app:
+    image: .
+    container_name: palmirinha-app
+    volumes:
+      - ../app:/go/src/bots/palmirinha/app
+    ports:
+      - 6065:8080
+    environment:
+      - "APP_ENV=develop"
+    depends_on:
+      - db
+    networks:
+      - palmirinha_net
+  db:
+    image: mysql:5.7
+    container_name: palmirinha-db
+    volumes:
+      - ./data:/var/lib/mysql:rw
+    ports:
+      - "3306"
+    environment:
+      TZ: "America/Sao_Paulo"
+      MYSQL_ROOT_PASSWORD: "palmirinha"
+      MYSQL_DATABASE: "palmirinha_data"
+      MYSQL_USER: "palmirinha"
+      MYSQL_PASSWORD: "palmirinha"
+    networks:
+      - palmirinha_net
+networks:
+  palmirinha_net:
+    driver: bridge

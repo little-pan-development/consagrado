@@ -1,0 +1,13 @@
+{
+    "database": {
+        "driver": "mysql",
+        "host": "",
+        "base": "",
+        "port": "",
+        "user": "",
+        "pass": ""
+    },
+    "bot": {
+        "token": ""
+    }
+}
