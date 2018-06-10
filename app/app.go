@@ -74,12 +74,12 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
-	// Cria uma comanda
+	// Cria um carrinho
 	if strings.HasPrefix(m.Content, "!criar") {
 
 		split := strings.SplitN(m.Content, " ", 2)
 		if len(split) == 1 {
-			_, err := s.ChannelMessageSend(m.ChannelID, "Digite uma descrição para sua comanda!")
+			_, err := s.ChannelMessageSend(m.ChannelID, "Digite uma descrição para seu carrinho!")
 			checkErr(err)
 			return
 		}
@@ -88,7 +88,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		checkErr(err)
 
 		if checkCount(rows) > 0 {
-			_, err := s.ChannelMessageSend(m.ChannelID, "Existe uma comanda em aberto!")
+			_, err := s.ChannelMessageSend(m.ChannelID, "Existe um carrinho em aberto!")
 			checkErr(err)
 			return
 		}
@@ -106,10 +106,10 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 		idToString := strconv.FormatInt(int64(id), 10)
 
-		s.ChannelMessageSend(m.ChannelID, "Comanda de número `"+idToString+"` criada com sucesso!")
+		s.ChannelMessageSend(m.ChannelID, "Carrinho de número `"+idToString+"` criada com sucesso!")
 	}
 
-	// Finaliza comanda
+	// Finaliza carrinho
 	if strings.HasPrefix(m.Content, "!finalizar") {
 
 		stmt, err := db.Prepare("update cart set status = ? where status = ?")
@@ -124,10 +124,10 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		fmt.Println(affect)
 
 		s.UpdateStatus(0, "Ingredientes na panela.")
-		s.ChannelMessageSend(m.ChannelID, m.Author.Mention()+" a comanda foi finalizada!")
+		s.ChannelMessageSend(m.ChannelID, m.Author.Mention()+" o carrinho foi finalizado!")
 	}
 
-	// Insere pedido na comanda
+	// Insere pedido no carrinho
 	if strings.HasPrefix(m.Content, "!pedir") {
 
 		split := strings.SplitN(m.Content, " ", 2)
@@ -143,7 +143,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 		switch err {
 		case sql.ErrNoRows:
-			s.ChannelMessageSend(m.ChannelID, "É necessário ter uma comanda aberta para adicionar os pedidos")
+			s.ChannelMessageSend(m.ChannelID, "Utilize **!criar nome do carrinho** para criar um novo carrinho")
 			return
 		default:
 			checkErr(err)
@@ -169,7 +169,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		s.ChannelMessageSend(m.ChannelID, m.Author.Mention()+" seu pedido foi realizado com sucesso")
 	}
 
-	// Retira pedido da comanda
+	// Retira pedido do carrinho
 	if strings.HasPrefix(m.Content, "!cancelar") {
 		var item Item
 		row := db.QueryRow("select i.id from cart c inner join item i on c.id = i.cart_id where c.status = 1 and i.discord_user_id = ?", m.Author.ID)
