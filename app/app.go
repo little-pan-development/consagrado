@@ -106,7 +106,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 		idToString := strconv.FormatInt(int64(id), 10)
 
-		s.ChannelMessageSend(m.ChannelID, "Carrinho de número `"+idToString+"` criada com sucesso!")
+		s.ChannelMessageSend(m.ChannelID, "Carrinho `#"+idToString+" "+split[1]+"` criado com sucesso!")
 	}
 
 	// Finaliza carrinho
@@ -124,7 +124,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		fmt.Println(affect)
 
 		s.UpdateStatus(0, "Ingredientes na panela.")
-		s.ChannelMessageSend(m.ChannelID, m.Author.Mention()+" o carrinho foi finalizado!")
+		s.ChannelMessageSend(m.ChannelID, "@here **Pedidos finalizados!**")
 	}
 
 	// Insere pedido no carrinho
@@ -132,7 +132,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 		split := strings.SplitN(m.Content, " ", 2)
 		if len(split) == 1 {
-			_, err := s.ChannelMessageSend(m.ChannelID, "Digite seu pedido!")
+			_, err := s.ChannelMessageSend(m.ChannelID, m.Author.Mention()+", digite seu pedido. Por exemplo, `!pedir Lentilha da vó` :heart:")
 			checkErr(err)
 			return
 		}
@@ -143,7 +143,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 		switch err {
 		case sql.ErrNoRows:
-			s.ChannelMessageSend(m.ChannelID, "Utilize **!criar nome do carrinho** para criar um novo carrinho")
+			s.ChannelMessageSend(m.ChannelID, m.Author.Mention()+", antes de pedirem, utilize `!criar nome do carrinho` para **criar um novo carrinho**.")
 			return
 		default:
 			checkErr(err)
@@ -155,7 +155,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		checkErr(err)
 
 		if checkCount(rows) > 0 {
-			_, err := s.ChannelMessageSend(m.ChannelID, m.Author.Mention()+" você já realizou seu pedido. para cancelar digite `!cancelar`")
+			_, err := s.ChannelMessageSend(m.ChannelID, m.Author.Mention()+" você já realizou seu pedido. Para **cancelar** digite `!cancelar`")
 			checkErr(err)
 			return
 		}
@@ -166,7 +166,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		_, err = stmt.Exec(split[1], cart.ID, m.Author.ID)
 		checkErr(err)
 
-		s.ChannelMessageSend(m.ChannelID, m.Author.Mention()+" seu pedido foi realizado com sucesso")
+		s.ChannelMessageSend(m.ChannelID, m.Author.Mention()+" seu **pedido foi realizado** com sucesso.")
 	}
 
 	// Retira pedido do carrinho
@@ -188,7 +188,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 		fmt.Println(affect)
 
-		s.ChannelMessageSend(m.ChannelID, m.Author.Mention()+" seu pedido foi cancelado com sucesso!")
+		s.ChannelMessageSend(m.ChannelID, m.Author.Mention()+" seu pedido foi **cancelado** com sucesso!")
 	}
 
 	// Lista todos os pedidos
@@ -209,7 +209,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		embed.Author = &discordgo.MessageEmbedAuthor{}
 		embed.Author.Name = "Palmirinha!"
 		embed.Author.URL = "https://www.facebook.com/vovopalmirinha/"
-		embed.Author.IconURL = "https://scontent.fcpq4-1.fna.fbcdn.net/v/t1.0-1/c20.20.244.244/s200x200/972204_574614189257388_453474107_n.jpg?_nc_cat=0&oh=4d3f268df753dbab5cb2e215084320d9&oe=5BBFCF6D"
+		embed.Author.IconURL = "https://i.imgur.com/QTDVdLK.jpg"
 
 		embed.Fields = []*discordgo.MessageEmbedField{}
 
@@ -221,7 +221,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 			var user, _ = s.User(item.DiscordUserId)
 
 			embed.Fields = append(embed.Fields, &discordgo.MessageEmbedField{
-				Name:   user.Username,
+				Name:   "**" + user.Username + "**",
 				Value:  item.Description,
 				Inline: false,
 			})
