@@ -14,6 +14,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
+// Config is a project wide config for connections
 type Config struct {
 	Database struct {
 		Driver string `json:"driver"`
@@ -28,17 +29,28 @@ type Config struct {
 	}
 }
 
+// Cart is our itens wrapper
 type Cart struct {
 	ID          uint
 	Description string
 	Item        []Item
 }
 
+// Item is any order made
 type Item struct {
 	ID            uint
 	Description   string
 	DiscordUserId string
 }
+
+// Route is a command routing struct
+type Route struct {
+	Description string
+	Handler     func()
+}
+
+// Routes is a pseudo routing map for our command strings
+type Routes map[string]Route
 
 func main() {
 	config := loadConfiguration("config.json")
@@ -73,6 +85,9 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if m.Author.ID == s.State.User.ID {
 		return
 	}
+
+	// routes := loadRoutes()
+	// handleRoute(m.Content, routes)
 
 	// Cria um carrinho
 	if strings.HasPrefix(m.Content, "!criar") {
@@ -256,6 +271,35 @@ func loadConfiguration(file string) Config {
 	jsonParser := json.NewDecoder(configFile)
 	jsonParser.Decode(&config)
 	return config
+}
+
+func loadRoutes() Routes {
+	var routes Routes
+
+	// routes["!pedidos"] = Route{
+	// 	Description: "Listar todos pedidos do último carrinho aberto",
+	// 	Handler:     listCartContent,
+	// }
+	//
+	// routes["!pedir"] = Route{
+	// 	Description: "Listar todos pedidos do último carrinho aberto",
+	// 	Handler:     listCartContent,
+	// }
+
+	return routes
+}
+
+func handleRoute(content string, routes Routes) {
+	parts := strings.SplitN(strings.TrimLeft(content, " "), " ", 1)
+
+	if len(parts[0]) > 1 {
+
+	}
+
+}
+
+func listCartContent() {
+
 }
 
 func checkCount(rows *sql.Rows) (count int) {
