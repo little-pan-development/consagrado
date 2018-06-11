@@ -1,7 +1,7 @@
 {
     "database": {
         "driver": "mysql",
-        "host": "",
+        "host": "my-host",
         "base": "",
         "port": "",
         "user": "",
