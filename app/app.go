@@ -221,7 +221,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 			var user, _ = s.User(item.DiscordUserId)
 
 			embed.Fields = append(embed.Fields, &discordgo.MessageEmbedField{
-				Name:   "**" + user.Username + "**",
+				Name:   "\n\n**" + user.Username + "**",
 				Value:  item.Description,
 				Inline: false,
 			})
