@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"regexp"
 	"strconv"
 	"strings"
 	"syscall"
@@ -92,7 +93,9 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	// Cria um carrinho
 	if strings.HasPrefix(m.Content, "!criar") {
 
-		split := strings.SplitN(m.Content, " ", 2)
+		splitRegexp := regexp.MustCompile("[\n| ]")
+		split := splitRegexp.Split(m.Content, 2)
+
 		if len(split) == 1 {
 			_, err := s.ChannelMessageSend(m.ChannelID, "Digite uma descrição para seu carrinho!")
 			checkErr(err)
@@ -145,7 +148,9 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	// Insere pedido no carrinho
 	if strings.HasPrefix(m.Content, "!pedir") {
 
-		split := strings.SplitN(m.Content, " ", 2)
+		splitRegexp := regexp.MustCompile("[\n| ]")
+		split := splitRegexp.Split(m.Content, 2)
+
 		if len(split) == 1 {
 			_, err := s.ChannelMessageSend(m.ChannelID, m.Author.Mention()+", digite seu pedido. Por exemplo, `!pedir Lentilha da vó` :heart:")
 			checkErr(err)
@@ -236,11 +241,38 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 			var user, _ = s.User(item.DiscordUserId)
 
 			embed.Fields = append(embed.Fields, &discordgo.MessageEmbedField{
-				Name:   "**" + user.Username + "**",
+				Name:   "\n\n**" + user.Username + "**",
 				Value:  item.Description,
 				Inline: false,
 			})
 		}
+
+		s.ChannelMessageSendEmbed(m.ChannelID, embed)
+	}
+
+	// Sortear um dos donos de pedidos abertos para pedir
+	if strings.HasPrefix(m.Content, "!sortear") {
+
+		var discordUserID string
+		row := db.QueryRow("SELECT i.discord_user_id FROM cart c JOIN item i ON i.cart_id = c.id WHERE c.status = 1 ORDER BY RAND() LIMIT 1")
+		err := row.Scan(&discordUserID)
+
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		var user, _ = s.User(discordUserID)
+
+		embed := &discordgo.MessageEmbed{}
+
+		embed.Title = "Parabéns! Hoje é com..."
+		embed.Description = user.Mention() + " contamos com você!"
+		embed.Color = 0xff0000
+
+		embed.Author = &discordgo.MessageEmbedAuthor{}
+		embed.Author.Name = "Palmirinha!"
+		embed.Author.URL = "https://www.facebook.com/vovopalmirinha/"
+		embed.Author.IconURL = "https://i.imgur.com/QTDVdLK.jpg"
 
 		s.ChannelMessageSendEmbed(m.ChannelID, embed)
 	}
