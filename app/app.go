@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"regexp"
 	"strconv"
 	"strings"
 	"syscall"
@@ -77,7 +78,9 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	// Cria um carrinho
 	if strings.HasPrefix(m.Content, "!criar") {
 
-		split := strings.SplitN(m.Content, " ", 2)
+		splitRegexp := regexp.MustCompile("[\n| ]")
+		split := splitRegexp.Split(m.Content, 2)
+
 		if len(split) == 1 {
 			_, err := s.ChannelMessageSend(m.ChannelID, "Digite uma descrição para seu carrinho!")
 			checkErr(err)
@@ -130,7 +133,9 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	// Insere pedido no carrinho
 	if strings.HasPrefix(m.Content, "!pedir") {
 
-		split := strings.SplitN(m.Content, " ", 2)
+		splitRegexp := regexp.MustCompile("[\n| ]")
+		split := splitRegexp.Split(m.Content, 2)
+
 		if len(split) == 1 {
 			_, err := s.ChannelMessageSend(m.ChannelID, m.Author.Mention()+", digite seu pedido. Por exemplo, `!pedir Lentilha da vó` :heart:")
 			checkErr(err)
