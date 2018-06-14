@@ -230,11 +230,11 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		s.ChannelMessageSendEmbed(m.ChannelID, embed)
 	}
 
-	// Lista todos os pedidos
+	// Sortear um dos donos de pedidos abertos para pedir
 	if strings.HasPrefix(m.Content, "!sortear") {
 
 		var discordUserID string
-		row := db.QueryRow("SELECT i.discord_user_id FROM cart c JOIN item i ON i.cart_id = c.id WHERE c.status = 1")
+		row := db.QueryRow("SELECT i.discord_user_id FROM cart c JOIN item i ON i.cart_id = c.id WHERE c.status = 1 ORDER BY RAND() LIMIT 1")
 		err := row.Scan(&discordUserID)
 
 		if err != nil {
