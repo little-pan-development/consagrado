@@ -29,14 +29,8 @@ type Config struct {
 	}
 }
 
-type Channel struct {
-	ID  uint
-	Ref string
-}
-
 type Cart struct {
 	ID          uint
-	ChannelID   uint
 	Description string
 	Item        []Item
 }
