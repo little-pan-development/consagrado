@@ -6,6 +6,7 @@ USE `palmirinha_data` ;
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `palmirinha_data`.`cart` (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `channel_id` VARCHAR(255) NULL,
   `description` VARCHAR(255) NULL,
   `status` TINYINT(1) NOT NULL DEFAULT 1,
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
