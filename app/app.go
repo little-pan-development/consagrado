@@ -29,8 +29,14 @@ type Config struct {
 	}
 }
 
+type Channel struct {
+	ID  uint
+	Ref string
+}
+
 type Cart struct {
 	ID          uint
+	ChannelID   uint
 	Description string
 	Item        []Item
 }
@@ -87,7 +93,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 			return
 		}
 
-		rows, err := db.Query("SELECT COUNT(*) FROM cart WHERE status = 1")
+		rows, err := db.Query("SELECT COUNT(*) FROM cart WHERE status = 1 and channel_id = ?", m.ChannelID)
 		checkErr(err)
 
 		if checkCount(rows) > 0 {
@@ -96,10 +102,10 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 			return
 		}
 
-		stmt, err := db.Prepare("INSERT cart SET description = ?, status = ?")
+		stmt, err := db.Prepare("INSERT cart SET description = ?, status = ?, channel_id = ?")
 		checkErr(err)
 
-		res, err := stmt.Exec(split[1], 1)
+		res, err := stmt.Exec(split[1], 1, m.ChannelID)
 		checkErr(err)
 
 		id, err := res.LastInsertId()
@@ -115,10 +121,10 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	// Finaliza carrinho
 	if strings.HasPrefix(m.Content, "!finalizar") {
 
-		stmt, err := db.Prepare("update cart set status = ? where status = ?")
+		stmt, err := db.Prepare("update cart set status = ? where status = ? and channel_id = ?")
 		checkErr(err)
 
-		res, err := stmt.Exec(0, 1)
+		res, err := stmt.Exec(0, 1, m.ChannelID)
 		checkErr(err)
 
 		affect, err := res.RowsAffected()
@@ -143,7 +149,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		}
 
 		var cart Cart
-		row := db.QueryRow("SELECT id, description FROM cart WHERE status = 1")
+		row := db.QueryRow("SELECT id, description FROM cart WHERE status = 1 and channel_id = ?", m.ChannelID)
 		err := row.Scan(&cart.ID, &cart.Description)
 
 		switch err {
@@ -177,7 +183,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	// Retira pedido do carrinho
 	if strings.HasPrefix(m.Content, "!cancelar") {
 		var item Item
-		row := db.QueryRow("select i.id from cart c inner join item i on c.id = i.cart_id where c.status = 1 and i.discord_user_id = ?", m.Author.ID)
+		row := db.QueryRow("select i.id from cart c inner join item i on c.id = i.cart_id where c.status = 1 and i.discord_user_id = ? and c.channel_id = ?", m.Author.ID, m.ChannelID)
 		err := row.Scan(&item.ID)
 
 		fmt.Printf("%v", item.ID)
@@ -200,7 +206,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if strings.HasPrefix(m.Content, "!pedidos") {
 
 		var cart Cart
-		row := db.QueryRow("SELECT id, description FROM cart WHERE status = 1")
+		row := db.QueryRow("SELECT id, description FROM cart WHERE status = 1 and channel_id = ?", m.ChannelID)
 		err := row.Scan(&cart.ID, &cart.Description)
 
 		rows, err := db.Query("SELECT description, discord_user_id FROM item WHERE cart_id = ?", cart.ID)
@@ -239,7 +245,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if strings.HasPrefix(m.Content, "!sortear") {
 
 		var discordUserID string
-		row := db.QueryRow("SELECT i.discord_user_id FROM cart c JOIN item i ON i.cart_id = c.id WHERE c.status = 1 ORDER BY RAND() LIMIT 1")
+		row := db.QueryRow("SELECT i.discord_user_id FROM cart c JOIN item i ON i.cart_id = c.id WHERE c.status = 1 and c.channel_id = ? ORDER BY RAND() LIMIT 1", m.ChannelID)
 		err := row.Scan(&discordUserID)
 
 		if err != nil {
