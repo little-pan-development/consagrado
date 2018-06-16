@@ -213,6 +213,10 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		s.ChannelMessageSendEmbed(m.ChannelID, embed)
 	}
 
+	if strings.HasPrefix(m.Content, "!chegou") {
+		s.ChannelMessageSend(m.ChannelID, "@here Pessoal chegou a comida! :D")
+	}
+
 	// Sortear um dos donos de pedidos abertos para pedir
 	if strings.HasPrefix(m.Content, "!sortear") {
 
