@@ -217,6 +217,10 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		s.ChannelMessageSend(m.ChannelID, "@here Pessoal chegou a comida! :D")
 	}
 
+	if strings.HasPrefix(m.Content, "!ajuda") {
+		sendHelp(m.ChannelID, s)
+	}
+
 	// Sortear um dos donos de pedidos abertos para pedir
 	if strings.HasPrefix(m.Content, "!sortear") {
 
@@ -354,4 +358,70 @@ func getCartContentsAsEmbed(db *sql.DB, channelID string, s *discordgo.Session) 
 	}
 
 	return embed
+}
+
+// Exibe mensagem de ajuda dos comandos do BOT
+func sendHelp(channelID string, s *discordgo.Session) {
+	embed := &discordgo.MessageEmbed{}
+
+	embed.Title = "Calma, vou te ajudar"
+	embed.Description = "**--** :heart: **--**"
+	embed.Color = 0x00ff00
+
+	embed.Author = &discordgo.MessageEmbedAuthor{}
+	embed.Author.Name = "Palmirinha!"
+	embed.Author.URL = "https://www.facebook.com/vovopalmirinha/"
+	embed.Author.IconURL = "https://i.imgur.com/QTDVdLK.jpg"
+
+	embed.Fields = []*discordgo.MessageEmbedField{}
+
+	embed.Fields = append(embed.Fields, &discordgo.MessageEmbedField{
+		Name:   "**!ajuda**",
+		Value:  "Exibe esta tela de ajuda",
+		Inline: false,
+	})
+
+	embed.Fields = append(embed.Fields, &discordgo.MessageEmbedField{
+		Name:   "**!criar**",
+		Value:  "Cria um carrinho para você e todos do canal colocarem seus pedidos.",
+		Inline: false,
+	})
+
+	embed.Fields = append(embed.Fields, &discordgo.MessageEmbedField{
+		Name:   "**!pedir Marmitex**",
+		Value:  "Adiciona o pedido `Marmitex` em seu nome no carrinho criado neste canal.",
+		Inline: false,
+	})
+
+	embed.Fields = append(embed.Fields, &discordgo.MessageEmbedField{
+		Name:   "**!cancelar**",
+		Value:  "Cancela o seu pedido no carrinho deste canal.",
+		Inline: false,
+	})
+
+	embed.Fields = append(embed.Fields, &discordgo.MessageEmbedField{
+		Name:   "**!pedidos**",
+		Value:  "Lista todos pedidos do carrinho aberto neste canal.",
+		Inline: false,
+	})
+
+	embed.Fields = append(embed.Fields, &discordgo.MessageEmbedField{
+		Name:   "**!sortear**",
+		Value:  "Só pode antes de finalizar. Seleciona uma pessoa aleatória dentre os pedidos do carrinho aberto para pedir hoje!",
+		Inline: false,
+	})
+
+	embed.Fields = append(embed.Fields, &discordgo.MessageEmbedField{
+		Name:   "**!finalizar**",
+		Value:  "Finaliza carrinho aberto no canal e lista todos os pedidos do mesmo.",
+		Inline: false,
+	})
+
+	embed.Fields = append(embed.Fields, &discordgo.MessageEmbedField{
+		Name:   "**!chegou**",
+		Value:  "Avisa no canal que a comida chegou.",
+		Inline: false,
+	})
+
+	s.ChannelMessageSendEmbed(channelID, embed)
 }
