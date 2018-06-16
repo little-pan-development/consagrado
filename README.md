@@ -2,30 +2,30 @@
 
 Este BOT para discord feito em GO e com banco de dados MySQL te ajudará a pedir comida (ou qualquer coisa) com seus amigos! 
 
-## Comandos
+# Comandos
 
-# !ajuda
+## !ajuda
 Exibe esta tela de ajuda
 
-# !criar
+## !criar
 Cria um carrinho para você e todos do canal colocarem seus pedidos.
 
-# !pedir Marmitex
+## !pedir Marmitex
 Adiciona o pedido Marmitex em seu nome no carrinho criado neste canal.
 
-# !cancelar
+## !cancelar
 Cancela o seu pedido no carrinho deste canal.
 
-# !pedidos
+## !pedidos
 Lista todos pedidos do carrinho aberto neste canal.
 
-# !sortear
+## !sortear
 Só pode antes de finalizar. Seleciona uma pessoa aleatória dentre os pedidos do carrinho aberto para pedir hoje!
 
-# !finalizar
+## !finalizar
 Finaliza carrinho aberto no canal e lista todos os pedidos do mesmo.
 
-# !chegou
+## !chegou
 Avisa no canal que a comida chegou.
 
 Não poderia ser mais simples.
