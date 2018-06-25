@@ -113,6 +113,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 		stmt, err := db.Prepare("INSERT cart SET description = ?, status = ?, channel_id = ?")
 		checkErr(err)
+		defer stmt.Close()
 
 		res, err := stmt.Exec(split[1], 1, m.ChannelID)
 		checkErr(err)
@@ -136,6 +137,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		// Desabilita carrinho
 		stmt, err := db.Prepare("update cart set status = ? where status = ? and channel_id = ?")
 		checkErr(err)
+		defer stmt.Close()
 
 		_, err = stmt.Exec(0, 1, m.ChannelID)
 		checkErr(err)
@@ -183,6 +185,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 		stmt, err := db.Prepare("INSERT item SET description = ?, cart_id = ?, discord_user_id = ?")
 		checkErr(err)
+		defer stmt.Close()
 
 		_, err = stmt.Exec(split[1], cart.ID, m.Author.ID)
 		checkErr(err)
@@ -199,6 +202,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		// select i.id from cart c inner join item i on c.id = i.cart_id where c.status = 1 and i.discord_user_id = "186909290475290624";
 		stmt, err := db.Prepare("delete from item where id = ?")
 		checkErr(err)
+		defer stmt.Close()
 
 		_, err = stmt.Exec(item.ID)
 		checkErr(err)
@@ -250,6 +254,64 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		} else {
 			s.ChannelMessageSend(m.ChannelID, m.Author.Mention()+" **não há pedidos para sortear.**")
 		}
+	}
+
+	if strings.HasPrefix(m.Content, "!last") {
+		var item Item
+		var status uint
+
+		row := db.QueryRow("select i.id, i.description, c.status from cart c inner join item i on c.id = i.cart_id where i.discord_user_id = ? and c.channel_id = ? ORDER BY created_at DESC", m.Author.ID, m.ChannelID)
+		err := row.Scan(&item.ID, &item.Description, &status)
+
+		checkErr(err)
+
+		requested := "Pidiendo"
+		if status == 0 {
+			requested = "Pedido"
+		}
+
+		s.ChannelMessageSend(m.ChannelID, m.Author.Mention()+" seu ultimo pedido **"+item.Description+"** estado ("+requested+")")
+	}
+
+	if strings.HasPrefix(m.Content, "!repetir") {
+		var description string
+
+		row := db.QueryRow("select i.description from cart c inner join item i on c.id = i.cart_id where i.discord_user_id = ? and c.channel_id = ? ORDER BY created_at DESC", m.Author.ID, m.ChannelID)
+		err := row.Scan(&description)
+
+		checkErr(err)
+
+		var cart Cart
+		row = db.QueryRow("SELECT id, description FROM cart WHERE status = 1 and channel_id = ?", m.ChannelID)
+		err = row.Scan(&cart.ID, &cart.Description)
+
+		switch err {
+		case sql.ErrNoRows:
+			s.ChannelMessageSend(m.ChannelID, m.Author.Mention()+", antes de pedirem, utilize `!criar nome do carrinho` para **criar um novo carrinho**.")
+			return
+		default:
+			checkErr(err)
+		}
+
+		rows, err := db.Query("SELECT COUNT(1) FROM item WHERE discord_user_id = ? AND cart_id = ?", m.Author.ID, cart.ID)
+		checkErr(err)
+
+		if checkCount(rows) > 0 {
+			_, err := s.ChannelMessageSend(m.ChannelID, m.Author.Mention()+" você já realizou seu pedido. Para **cancelar** digite `!cancelar`")
+			checkErr(err)
+			return
+		}
+
+		stmt, err := db.Prepare("INSERT item SET description = ?, cart_id = ?, discord_user_id = ?")
+		checkErr(err)
+		defer stmt.Close()
+
+		_, err = stmt.Exec(description, cart.ID, m.Author.ID)
+		checkErr(err)
+
+		s.ChannelMessageSend(m.ChannelID, m.Author.Mention()+" seu **pedido foi realizado** com sucesso.")
+
+		checkErr(err)
 	}
 }
 
