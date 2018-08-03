@@ -7,7 +7,6 @@ import (
 	"os"
 	"os/signal"
 	"regexp"
-	"strconv"
 	"strings"
 	"syscall"
 
@@ -53,6 +52,12 @@ type Route struct {
 // Routes is a pseudo routing map for our command strings
 type Routes map[string]Route
 
+func NewRouter() *Router {
+	return &Router{
+		rules: make(map[string]Handler),
+	}
+}
+
 func main() {
 	config := loadConfiguration("config.json")
 
@@ -78,54 +83,89 @@ func ready(s *discordgo.Session, event *discordgo.Ready) {
 	s.UpdateStatus(0, "Ingredientes na panela")
 }
 
+type Router struct {
+	rules map[string]Handler
+}
+
+func (r *Router) Handle(msgName string, handler Handler) {
+	r.rules[msgName] = handler
+}
+
+func (r *Router) FindHandler(msgName string) (Handler, bool) {
+	handler, found := r.rules[msgName]
+	return handler, found
+}
+
+type Handler func(*Client, interface{})
+type FindHandler func(string) (Handler, bool)
+
+type Client struct {
+	findHandler FindHandler
+}
+
+func NewClient(findHandler FindHandler) *Client {
+	return &Client{
+		findHandler: findHandler,
+	}
+}
+
 func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 	db := dbConn()
 	defer db.Close()
 
+	router := NewRouter()
+	router.Handle("!criar", createCart)
+	// router.Handle("MESSAGE_READ", messageRead)
+
+	client := NewClient(router.FindHandler)
+
+	command := strings.Split(m.Content, " ")[0]
+
+	if handler, found := client.findHandler(command); found {
+		handler(client, "message.Data")
+	}
+
 	if m.Author.ID == s.State.User.ID {
 		return
 	}
 
-	// routes := loadRoutes()
-	// handleRoute(m.Content, routes)
-
 	// Cria um carrinho
-	if strings.HasPrefix(m.Content, "!criar") {
+	// if strings.HasPrefix(m.Content, "!criar") {
 
-		splitRegexp := regexp.MustCompile("[\n| ]")
-		split := splitRegexp.Split(m.Content, 2)
+	// 	splitRegexp := regexp.MustCompile("[\n| ]")
+	// 	split := splitRegexp.Split(m.Content, 2)
 
-		if len(split) == 1 {
-			_, err := s.ChannelMessageSend(m.ChannelID, "Digite uma descrição para seu carrinho!")
-			checkErr(err)
-			return
-		}
+	// 	if len(split) == 1 {
+	// 		_, err := s.ChannelMessageSend(m.ChannelID, "Digite uma descrição para seu carrinho!")
+	// 		checkErr(err)
+	// 		return
+	// 	}
 
-		rows, err := db.Query("SELECT COUNT(*) FROM cart WHERE status = 1 and channel_id = ?", m.ChannelID)
-		checkErr(err)
+	// 	rows, err := db.Query("SELECT COUNT(*) FROM cart WHERE status = 1 and channel_id = ?", m.ChannelID)
+	// 	checkErr(err)
 
-		if checkCount(rows) > 0 {
-			_, err := s.ChannelMessageSend(m.ChannelID, "Existe um carrinho em aberto!")
-			checkErr(err)
-			return
-		}
+	// 	if checkCount(rows) > 0 {
+	// 		_, err := s.ChannelMessageSend(m.ChannelID, "Existe um carrinho em aberto!")
+	// 		checkErr(err)
+	// 		return
+	// 	}
 
-		stmt, err := db.Prepare("INSERT cart SET description = ?, status = ?, channel_id = ?")
-		checkErr(err)
+	// 	stmt, err := db.Prepare("INSERT cart SET description = ?, status = ?, channel_id = ?")
+	// 	checkErr(err)
 
-		res, err := stmt.Exec(split[1], 1, m.ChannelID)
-		checkErr(err)
+	// 	res, err := stmt.Exec(split[1], 1, m.ChannelID)
+	// 	checkErr(err)
 
-		id, err := res.LastInsertId()
-		checkErr(err)
+	// 	id, err := res.LastInsertId()
+	// 	checkErr(err)
 
-		s.UpdateStatus(0, "Faça seu pedido..")
+	// 	s.UpdateStatus(0, "Faça seu pedido..")
 
-		idToString := strconv.FormatInt(int64(id), 10)
+	// 	idToString := strconv.FormatInt(int64(id), 10)
 
-		s.ChannelMessageSend(m.ChannelID, "Carrinho `#"+idToString+" "+split[1]+"` criado com sucesso!")
-	}
+	// 	s.ChannelMessageSend(m.ChannelID, "Carrinho `#"+idToString+" "+split[1]+"` criado com sucesso!")
+	// }
 
 	// Finaliza carrinho
 	if strings.HasPrefix(m.Content, "!finalizar") {
@@ -270,35 +310,6 @@ func loadConfiguration(file string) Config {
 	jsonParser := json.NewDecoder(configFile)
 	jsonParser.Decode(&config)
 	return config
-}
-
-func loadRoutes() Routes {
-	var routes Routes
-
-	// routes["!pedidos"] = Route{
-	// 	Description: "Listar todos pedidos do último carrinho aberto",
-	// 	Handler:     listCartContent,
-	// }
-	//
-	// routes["!pedir"] = Route{
-	// 	Description: "Listar todos pedidos do último carrinho aberto",
-	// 	Handler:     listCartContent,
-	// }
-
-	return routes
-}
-
-func handleRoute(content string, routes Routes) {
-	parts := strings.SplitN(strings.TrimLeft(content, " "), " ", 1)
-
-	if len(parts[0]) > 1 {
-
-	}
-
-}
-
-func listCartContent() {
-
 }
 
 func checkCount(rows *sql.Rows) (count int) {
