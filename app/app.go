@@ -15,6 +15,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
+// Config is a project wide config for connections
 type Config struct {
 	Database struct {
 		Driver string `json:"driver"`
@@ -29,17 +30,28 @@ type Config struct {
 	}
 }
 
+// Cart is our itens wrapper
 type Cart struct {
 	ID          uint
 	Description string
 	Item        []Item
 }
 
+// Item is any order made
 type Item struct {
 	ID            uint
 	Description   string
 	DiscordUserId string
 }
+
+// Route is a command routing struct
+type Route struct {
+	Description string
+	Handler     func()
+}
+
+// Routes is a pseudo routing map for our command strings
+type Routes map[string]Route
 
 func main() {
 	config := loadConfiguration("config.json")
@@ -74,6 +86,9 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if m.Author.ID == s.State.User.ID {
 		return
 	}
+
+	// routes := loadRoutes()
+	// handleRoute(m.Content, routes)
 
 	// Cria um carrinho
 	if strings.HasPrefix(m.Content, "!criar") {
@@ -115,18 +130,21 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	// Finaliza carrinho
 	if strings.HasPrefix(m.Content, "!finalizar") {
 
+		// Lista dos pedidos
+		embed := getCartContentsAsEmbed(db, m.ChannelID, s)
+
+		// Desabilita carrinho
 		stmt, err := db.Prepare("update cart set status = ? where status = ? and channel_id = ?")
 		checkErr(err)
 
-		res, err := stmt.Exec(0, 1, m.ChannelID)
+		_, err = stmt.Exec(0, 1, m.ChannelID)
 		checkErr(err)
-
-		affect, err := res.RowsAffected()
-		checkErr(err)
-
-		fmt.Println(affect)
 
 		s.UpdateStatus(0, "Ingredientes na panela.")
+
+		s.ChannelMessageSendEmbed(m.ChannelID, embed)
+
+		// Avisando finalização
 		s.ChannelMessageSend(m.ChannelID, "@here **Pedidos finalizados!**")
 	}
 
@@ -154,8 +172,6 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 			checkErr(err)
 		}
 
-		fmt.Printf("%v", cart.ID)
-
 		rows, err := db.Query("SELECT COUNT(*) FROM item WHERE discord_user_id = ? AND cart_id = ?", m.Author.ID, cart.ID)
 		checkErr(err)
 
@@ -180,59 +196,29 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		row := db.QueryRow("select i.id from cart c inner join item i on c.id = i.cart_id where c.status = 1 and i.discord_user_id = ? and c.channel_id = ?", m.Author.ID, m.ChannelID)
 		err := row.Scan(&item.ID)
 
-		fmt.Printf("%v", item.ID)
 		// select i.id from cart c inner join item i on c.id = i.cart_id where c.status = 1 and i.discord_user_id = "186909290475290624";
 		stmt, err := db.Prepare("delete from item where id = ?")
 		checkErr(err)
 
-		res, err := stmt.Exec(item.ID)
+		_, err = stmt.Exec(item.ID)
 		checkErr(err)
-
-		affect, err := res.RowsAffected()
-		checkErr(err)
-
-		fmt.Println(affect)
 
 		s.ChannelMessageSend(m.ChannelID, m.Author.Mention()+" seu pedido foi **cancelado** com sucesso!")
 	}
 
 	// Lista todos os pedidos
 	if strings.HasPrefix(m.Content, "!pedidos") {
-
-		var cart Cart
-		row := db.QueryRow("SELECT id, description FROM cart WHERE status = 1 and channel_id = ?", m.ChannelID)
-		err := row.Scan(&cart.ID, &cart.Description)
-
-		rows, err := db.Query("SELECT description, discord_user_id FROM item WHERE cart_id = ?", cart.ID)
-
-		embed := &discordgo.MessageEmbed{}
-
-		embed.Title = "Pedidos até o momento:"
-		embed.Description = "**--** :hamburger: **--**"
-		embed.Color = 0xff0000
-
-		embed.Author = &discordgo.MessageEmbedAuthor{}
-		embed.Author.Name = "Palmirinha!"
-		embed.Author.URL = "https://www.facebook.com/vovopalmirinha/"
-		embed.Author.IconURL = "https://i.imgur.com/QTDVdLK.jpg"
-
-		embed.Fields = []*discordgo.MessageEmbedField{}
-
-		for rows.Next() {
-			var item Item
-			err = rows.Scan(&item.Description, &item.DiscordUserId)
-			checkErr(err)
-
-			var user, _ = s.User(item.DiscordUserId)
-
-			embed.Fields = append(embed.Fields, &discordgo.MessageEmbedField{
-				Name:   "\n\n**" + user.Username + "**",
-				Value:  item.Description,
-				Inline: false,
-			})
-		}
+		embed := getCartContentsAsEmbed(db, m.ChannelID, s)
 
 		s.ChannelMessageSendEmbed(m.ChannelID, embed)
+	}
+
+	if strings.HasPrefix(m.Content, "!chegou") {
+		s.ChannelMessageSend(m.ChannelID, "@here Pessoal chegou a comida! :D")
+	}
+
+	if strings.HasPrefix(m.Content, "!ajuda") {
+		sendHelp(m.ChannelID, s)
 	}
 
 	// Sortear um dos donos de pedidos abertos para pedir
@@ -242,24 +228,28 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		row := db.QueryRow("SELECT i.discord_user_id FROM cart c JOIN item i ON i.cart_id = c.id WHERE c.status = 1 and c.channel_id = ? ORDER BY RAND() LIMIT 1", m.ChannelID)
 		err := row.Scan(&discordUserID)
 
-		if err != nil {
-			fmt.Println(err)
+		// Isso pode ser aplicado melhor quando desacoplado
+		if err != sql.ErrNoRows {
+
+			checkErr(err)
+
+			var user, _ = s.User(discordUserID)
+
+			embed := &discordgo.MessageEmbed{}
+
+			embed.Title = "Parabéns! Hoje é com..."
+			embed.Description = user.Mention() + " contamos com você!"
+			embed.Color = 0xff0000
+
+			embed.Author = &discordgo.MessageEmbedAuthor{}
+			embed.Author.Name = "Palmirinha!"
+			embed.Author.URL = "https://www.facebook.com/vovopalmirinha/"
+			embed.Author.IconURL = "https://i.imgur.com/QTDVdLK.jpg"
+
+			s.ChannelMessageSendEmbed(m.ChannelID, embed)
+		} else {
+			s.ChannelMessageSend(m.ChannelID, m.Author.Mention()+" **não há pedidos para sortear.**")
 		}
-
-		var user, _ = s.User(discordUserID)
-
-		embed := &discordgo.MessageEmbed{}
-
-		embed.Title = "Parabéns! Hoje é com..."
-		embed.Description = user.Mention() + " contamos com você!"
-		embed.Color = 0xff0000
-
-		embed.Author = &discordgo.MessageEmbedAuthor{}
-		embed.Author.Name = "Palmirinha!"
-		embed.Author.URL = "https://www.facebook.com/vovopalmirinha/"
-		embed.Author.IconURL = "https://i.imgur.com/QTDVdLK.jpg"
-
-		s.ChannelMessageSendEmbed(m.ChannelID, embed)
 	}
 }
 
@@ -290,6 +280,35 @@ func loadConfiguration(file string) Config {
 	return config
 }
 
+func loadRoutes() Routes {
+	var routes Routes
+
+	// routes["!pedidos"] = Route{
+	// 	Description: "Listar todos pedidos do último carrinho aberto",
+	// 	Handler:     listCartContent,
+	// }
+	//
+	// routes["!pedir"] = Route{
+	// 	Description: "Listar todos pedidos do último carrinho aberto",
+	// 	Handler:     listCartContent,
+	// }
+
+	return routes
+}
+
+func handleRoute(content string, routes Routes) {
+	parts := strings.SplitN(strings.TrimLeft(content, " "), " ", 1)
+
+	if len(parts[0]) > 1 {
+
+	}
+
+}
+
+func listCartContent() {
+
+}
+
 func checkCount(rows *sql.Rows) (count int) {
 	for rows.Next() {
 		err := rows.Scan(&count)
@@ -302,4 +321,107 @@ func checkErr(err error) {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func getCartContentsAsEmbed(db *sql.DB, channelID string, s *discordgo.Session) *discordgo.MessageEmbed {
+	var cart Cart
+	row := db.QueryRow("SELECT id, description FROM cart WHERE status = 1 and channel_id = ?", channelID)
+	err := row.Scan(&cart.ID, &cart.Description)
+
+	rows, err := db.Query("SELECT description, discord_user_id FROM item WHERE cart_id = ?", cart.ID)
+
+	embed := &discordgo.MessageEmbed{}
+
+	embed.Title = "Pedidos até o momento:"
+	embed.Description = "**--** :hamburger: **--**"
+	embed.Color = 0xff0000
+
+	embed.Author = &discordgo.MessageEmbedAuthor{}
+	embed.Author.Name = "Palmirinha!"
+	embed.Author.URL = "https://www.facebook.com/vovopalmirinha/"
+	embed.Author.IconURL = "https://i.imgur.com/QTDVdLK.jpg"
+
+	embed.Fields = []*discordgo.MessageEmbedField{}
+
+	for rows.Next() {
+		var item Item
+		err = rows.Scan(&item.Description, &item.DiscordUserId)
+		checkErr(err)
+
+		var user, _ = s.User(item.DiscordUserId)
+
+		embed.Fields = append(embed.Fields, &discordgo.MessageEmbedField{
+			Name:   "\n\n**" + user.Username + "**",
+			Value:  item.Description,
+			Inline: false,
+		})
+	}
+
+	return embed
+}
+
+// Exibe mensagem de ajuda dos comandos do BOT
+func sendHelp(channelID string, s *discordgo.Session) {
+	embed := &discordgo.MessageEmbed{}
+
+	embed.Title = "Calma, vou te ajudar"
+	embed.Description = "**--** :heart: **--**"
+	embed.Color = 0x00ff00
+
+	embed.Author = &discordgo.MessageEmbedAuthor{}
+	embed.Author.Name = "Palmirinha!"
+	embed.Author.URL = "https://www.facebook.com/vovopalmirinha/"
+	embed.Author.IconURL = "https://i.imgur.com/QTDVdLK.jpg"
+
+	embed.Fields = []*discordgo.MessageEmbedField{}
+
+	embed.Fields = append(embed.Fields, &discordgo.MessageEmbedField{
+		Name:   "**!ajuda**",
+		Value:  "Exibe esta tela de ajuda",
+		Inline: false,
+	})
+
+	embed.Fields = append(embed.Fields, &discordgo.MessageEmbedField{
+		Name:   "**!criar**",
+		Value:  "Cria um carrinho para você e todos do canal colocarem seus pedidos.",
+		Inline: false,
+	})
+
+	embed.Fields = append(embed.Fields, &discordgo.MessageEmbedField{
+		Name:   "**!pedir Marmitex**",
+		Value:  "Adiciona o pedido `Marmitex` em seu nome no carrinho criado neste canal.",
+		Inline: false,
+	})
+
+	embed.Fields = append(embed.Fields, &discordgo.MessageEmbedField{
+		Name:   "**!cancelar**",
+		Value:  "Cancela o seu pedido no carrinho deste canal.",
+		Inline: false,
+	})
+
+	embed.Fields = append(embed.Fields, &discordgo.MessageEmbedField{
+		Name:   "**!pedidos**",
+		Value:  "Lista todos pedidos do carrinho aberto neste canal.",
+		Inline: false,
+	})
+
+	embed.Fields = append(embed.Fields, &discordgo.MessageEmbedField{
+		Name:   "**!sortear**",
+		Value:  "Só pode antes de finalizar. Seleciona uma pessoa aleatória dentre os pedidos do carrinho aberto para pedir hoje!",
+		Inline: false,
+	})
+
+	embed.Fields = append(embed.Fields, &discordgo.MessageEmbedField{
+		Name:   "**!finalizar**",
+		Value:  "Finaliza carrinho aberto no canal e lista todos os pedidos do mesmo.",
+		Inline: false,
+	})
+
+	embed.Fields = append(embed.Fields, &discordgo.MessageEmbedField{
+		Name:   "**!chegou**",
+		Value:  "Avisa no canal que a comida chegou.",
+		Inline: false,
+	})
+
+	s.ChannelMessageSendEmbed(channelID, embed)
 }
