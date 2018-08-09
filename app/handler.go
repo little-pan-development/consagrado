@@ -3,7 +3,6 @@ package main
 import (
 	"database/sql"
 	"regexp"
-	"strconv"
 
 	"github.com/bwmarrin/discordgo"
 	_ "github.com/go-sql-driver/mysql"
@@ -12,38 +11,29 @@ import (
 // Create a order / cart
 func (app *App) createOrder(client *Client) {
 
+	channelID := app.Message.ChannelID
+
 	splitRegexp := regexp.MustCompile("[\n| ]")
 	split := splitRegexp.Split(app.Message.Content, 2)
 
 	if len(split) == 1 {
-		_, err := app.Session.ChannelMessageSend(app.Message.ChannelID, "Digite uma descrição para seu carrinho!")
+		_, err := app.Session.ChannelMessageSend(channelID, "Digite uma descrição para seu carrinho!")
 		checkErr(err)
 		return
 	}
 
-	rows, err := app.Connection.Query("SELECT COUNT(*) FROM cart WHERE status = 1 and channel_id = ?", app.Message.ChannelID)
-	checkErr(err)
+	rows := app.countOpenOrderByChannelId(channelID)
 
-	if checkCount(rows) > 0 {
-		_, err := app.Session.ChannelMessageSend(app.Message.ChannelID, "Existe um carrinho em aberto!")
+	if rows > 0 {
+		_, err := app.Session.ChannelMessageSend(channelID, "Existe um carrinho em aberto!")
 		checkErr(err)
 		return
 	}
 
-	stmt, err := app.Connection.Prepare("INSERT cart SET description = ?, status = ?, channel_id = ?")
-	checkErr(err)
-
-	res, err := stmt.Exec(split[1], 1, app.Message.ChannelID)
-	checkErr(err)
-
-	id, err := res.LastInsertId()
-	checkErr(err)
+	id := app.createOrderByChannel(split[1], channelID)
 
 	app.Session.UpdateStatus(0, "Faça seu pedido..")
-
-	idToString := strconv.FormatInt(int64(id), 10)
-
-	app.Session.ChannelMessageSend(app.Message.ChannelID, "Carrinho `#"+idToString+" "+split[1]+"` criado com sucesso!")
+	app.Session.ChannelMessageSend(channelID, "Carrinho `#"+id+" "+split[1]+"` criado com sucesso!")
 }
 
 // close a order / cart

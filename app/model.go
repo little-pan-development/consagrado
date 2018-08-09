@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"strconv"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -25,4 +26,29 @@ type Item struct {
 	ID            uint
 	Description   string
 	DiscordUserID string
+}
+
+func (app *App) countOpenOrderByChannelId(channelID string) uint {
+
+	var count uint
+	query := `SELECT COUNT(*) FROM cart WHERE status = 1 and channel_id = ?`
+	rows, _ := app.Connection.Query(query, app.Message.ChannelID)
+
+	if rows.Next() {
+		rows.Scan(&count)
+	}
+
+	return count
+}
+
+func (app *App) createOrderByChannel(description, channelID string) string {
+
+	query := `INSERT cart SET description = ?, status = ?, channel_id = ?`
+	stmt, _ := app.Connection.Prepare(query)
+	res, _ := stmt.Exec(description, 1, channelID)
+
+	id, _ := res.LastInsertId()
+	idToString := strconv.FormatInt(int64(id), 10)
+
+	return idToString
 }
