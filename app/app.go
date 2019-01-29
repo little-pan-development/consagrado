@@ -4,9 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"os"
-	"os/signal"
 	"strings"
-	"syscall"
 
 	"github.com/bwmarrin/discordgo"
 	_ "github.com/go-sql-driver/mysql"
@@ -21,6 +19,7 @@ type Route struct {
 // Routes is a pseudo routing map for our command strings
 type Routes map[string]Route
 
+// NewRouter ...
 func NewRouter() *Router {
 	return &Router{
 		rules: make(map[string]Handler),
@@ -32,20 +31,25 @@ func main() {
 	app.Connect()
 
 	dg, err := discordgo.New(os.Getenv("DG_TOKEN"))
-	checkErr(err)
+	if err != nil {
+		fmt.Println("Failed to create discord session", err)
+	}
 
 	dg.AddHandler(ready)
 	dg.AddHandler(app.messageCreate)
 
 	err = dg.Open()
-	checkErr(err)
+	if err != nil {
+		fmt.Println("Unable to establish connection", err)
+	}
 
-	fmt.Println("Bot está online. Aperte CTRL-C para sair")
-	sc := make(chan os.Signal, 1)
-	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
-	<-sc
+	defer dg.Close()
 
-	dg.Close()
+	<-make(chan struct{})
+}
+
+func ready(s *discordgo.Session, event *discordgo.Ready) {
+	s.UpdateStatus(1, "Ingredientes na panela")
 }
 
 // Connect application in database
@@ -57,30 +61,34 @@ func (app *App) Connect() {
 	app.Connection = conn
 }
 
-func ready(s *discordgo.Session, event *discordgo.Ready) {
-	s.UpdateStatus(0, "Ingredientes na panela")
-}
-
+// Router ...
 type Router struct {
 	rules map[string]Handler
 }
 
+// Handle ...
 func (r *Router) Handle(msgName string, handler Handler) {
 	r.rules[msgName] = handler
 }
 
+// FindHandler ...
 func (r *Router) FindHandler(msgName string) (Handler, bool) {
 	handler, found := r.rules[msgName]
 	return handler, found
 }
 
+// Handler ...
 type Handler func(*Client)
+
+// FindHandler ...
 type FindHandler func(string) (Handler, bool)
 
+// Client ...
 type Client struct {
 	findHandler FindHandler
 }
 
+// NewClient ...
 func NewClient(findHandler FindHandler) *Client {
 	return &Client{
 		findHandler: findHandler,
@@ -111,7 +119,6 @@ func (app *App) messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) 
 	if handler, found := client.findHandler(command); found {
 		handler(client)
 	}
-
 }
 
 func checkCount(rows *sql.Rows) (count int) {
