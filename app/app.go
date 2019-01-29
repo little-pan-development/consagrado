@@ -2,7 +2,6 @@ package main
 
 import (
 	"database/sql"
-	"encoding/json"
 	"fmt"
 	"os"
 	"os/signal"
@@ -12,21 +11,6 @@ import (
 	"github.com/bwmarrin/discordgo"
 	_ "github.com/go-sql-driver/mysql"
 )
-
-// Config is a project wide config for connections
-type Config struct {
-	Database struct {
-		Driver string `json:"driver"`
-		Host   string `json:"host"`
-		Base   string `json:"base"`
-		Port   string `json:"port"`
-		User   string `json:"user"`
-		Pass   string `json:"pass"`
-	} `json:"database"`
-	Bot struct {
-		Token string `json:"token"`
-	}
-}
 
 // Route is a command routing struct
 type Route struct {
@@ -44,12 +28,10 @@ func NewRouter() *Router {
 }
 
 func main() {
-	config := loadConfiguration("config.json")
-
 	app := App{}
 	app.Connect()
 
-	dg, err := discordgo.New(config.Bot.Token)
+	dg, err := discordgo.New(os.Getenv("DG_TOKEN"))
 	checkErr(err)
 
 	dg.AddHandler(ready)
@@ -68,15 +50,8 @@ func main() {
 
 // Connect application in database
 func (app *App) Connect() {
-	config := loadConfiguration("config.json")
 
-	dbDriver := config.Database.Driver
-	dbHost := config.Database.Host
-	dbUser := config.Database.User
-	dbPass := config.Database.Pass
-	dbName := config.Database.Base
-
-	conn, err := sql.Open(dbDriver, dbUser+":"+dbPass+"@tcp("+dbHost+")/"+dbName)
+	conn, err := sql.Open("mysql", os.Getenv("MYSQL_USER")+":"+os.Getenv("MYSQL_PASS")+"@tcp("+os.Getenv("MYSQL_HOST")+")/"+os.Getenv("MYSQL_DATABASE"))
 	checkErr(err)
 
 	app.Connection = conn
@@ -137,17 +112,6 @@ func (app *App) messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) 
 		handler(client)
 	}
 
-}
-
-func loadConfiguration(file string) Config {
-	var config Config
-	configFile, err := os.Open(file)
-	defer configFile.Close()
-	checkErr(err)
-
-	jsonParser := json.NewDecoder(configFile)
-	jsonParser.Decode(&config)
-	return config
 }
 
 func checkCount(rows *sql.Rows) (count int) {

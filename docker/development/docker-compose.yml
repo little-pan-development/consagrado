@@ -1,0 +1,22 @@
+version: '3.7'
+
+services:
+  
+  palmirinha-app:
+    container_name: palmirinha-app
+    build: .
+    volumes:
+      - ../../app:/go/src/github.com/palmirinha/app
+    depends_on:
+      - palmirinha-db
+    ports:
+      - 8080:8080
+    env_file: env
+
+  palmirinha-db:
+    container_name: palmirinha-db
+    image: mysql:8.0
+    volumes:
+      - ../../data:/var/lib/mysql:rw
+    restart: always
+    env_file: env

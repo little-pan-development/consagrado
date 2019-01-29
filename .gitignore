@@ -1,3 +1,5 @@
-docker/data
-app/tmp
-app/config.json
+/data
+.idea
+/.vscode
+/app/tmp*
+/docker/development/env
