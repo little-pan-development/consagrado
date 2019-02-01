@@ -30,7 +30,7 @@ func main() {
 	app := App{}
 	app.Connect()
 
-	dg, err := discordgo.New(os.Getenv("DG_TOKEN"))
+	dg, err := discordgo.New("Bot " + os.Getenv("DG_TOKEN"))
 	if err != nil {
 		fmt.Println("Failed to create discord session", err)
 	}
@@ -49,14 +49,16 @@ func main() {
 }
 
 func ready(s *discordgo.Session, event *discordgo.Ready) {
-	s.UpdateStatus(1, "Ingredientes na panela")
+	s.UpdateStatus(0, "Ingredientes na panela")
 }
 
 // Connect application in database
 func (app *App) Connect() {
 
-	conn, err := sql.Open("mysql", os.Getenv("MYSQL_USER")+":"+os.Getenv("MYSQL_PASS")+"@tcp("+os.Getenv("MYSQL_HOST")+")/"+os.Getenv("MYSQL_DATABASE"))
-	checkErr(err)
+	conn, err := sql.Open("mysql", "palmirinha:palmirinha@tcp(palmirinha-db:3306)/palmirinha")
+	if err != nil {
+		fmt.Println(err)
+	}
 
 	app.Connection = conn
 }

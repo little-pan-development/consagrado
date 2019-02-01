@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"strconv"
 
 	"github.com/bwmarrin/discordgo"
@@ -32,7 +33,11 @@ func (app *App) countOpenOrderByChannelId(channelID string) uint {
 
 	var count uint
 	query := `SELECT COUNT(*) FROM cart WHERE status = 1 and channel_id = ?`
-	rows, _ := app.Connection.Query(query, app.Message.ChannelID)
+	rows, err := app.Connection.Query(query, app.Message.ChannelID)
+
+	if err != nil {
+		fmt.Println(err)
+	}
 
 	if rows.Next() {
 		rows.Scan(&count)

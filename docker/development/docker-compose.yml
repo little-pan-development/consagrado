@@ -12,11 +12,20 @@ services:
     ports:
       - 8080:8080
     env_file: env
+    networks:
+      - palmirinha-net
 
   palmirinha-db:
     container_name: palmirinha-db
-    image: mysql:8.0
+    image: mysql:5.7
     volumes:
       - ../../data:/var/lib/mysql:rw
+    ports:
+      - 33060:3306
     restart: always
     env_file: env
+    networks:
+      - palmirinha-net
+networks:
+  palmirinha-net:
+    driver: bridge
