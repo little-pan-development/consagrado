@@ -27,8 +27,6 @@ func NewRouter() *Router {
 }
 
 func main() {
-	app := App{}
-	app.Connect()
 
 	dg, err := discordgo.New("Bot " + os.Getenv("DG_TOKEN"))
 	if err != nil {
@@ -50,17 +48,6 @@ func main() {
 
 func ready(s *discordgo.Session, event *discordgo.Ready) {
 	s.UpdateStatus(0, "Ingredientes na panela")
-}
-
-// Connect application in database
-func (app *App) Connect() {
-
-	conn, err := sql.Open("mysql", "palmirinha:palmirinha@tcp(palmirinha-db:3306)/palmirinha")
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	app.Connection = conn
 }
 
 // Router ...
@@ -108,11 +95,11 @@ func (app *App) messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) 
 
 	router := NewRouter()
 
-	router.Handle("!criar", app.createOrder)
-	router.Handle("!finalizar", app.closeOrder)
-	router.Handle("!pedir", app.addItem)
-	router.Handle("!cancelar", app.removeItem)
-	router.Handle("!pedidos", app.listItems)
+	router.Handle("!criar", app.OpenList)
+	router.Handle("!finalizar", app.CloseList)
+	router.Handle("!pedir", app.AddItem)
+	router.Handle("!cancelar", app.RemoveItem)
+	router.Handle("!pedidos", app.ItemsByList)
 	router.Handle("!sortear", app.raffle)
 
 	client := NewClient(router.FindHandler)

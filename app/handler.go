@@ -8,8 +8,8 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
-// Create a order / cart
-func (app *App) createOrder(client *Client) {
+// OpenList ...
+func (app *App) OpenList(client *Client) {
 
 	channelID := app.Message.ChannelID
 
@@ -36,28 +36,22 @@ func (app *App) createOrder(client *Client) {
 	app.Session.ChannelMessageSend(channelID, "Carrinho `#"+id+" "+split[1]+"` criado com sucesso!")
 }
 
-// close a order / cart
-func (app *App) closeOrder(client *Client) {
+// CloseList ...
+func (app *App) CloseList(client *Client) {
 	// Lista dos pedidos
 	embed := app.getCartContentsAsEmbed(app.Message.ChannelID, app.Session)
 
-	// Desabilita carrinho
-	stmt, err := app.Connection.Prepare("update cart set status = ? where status = ? and channel_id = ?")
-	checkErr(err)
+	if models.CloseList(app.Message.ChannelID) {
+		app.Session.UpdateStatus(0, "Ingredientes na panela.")
+		app.Session.ChannelMessageSendEmbed(app.Message.ChannelID, embed)
+		// Avisando finalização
+		app.Session.ChannelMessageSend(app.Message.ChannelID, "@here **Pedidos finalizados!**")
+	}
 
-	_, err = stmt.Exec(0, 1, app.Message.ChannelID)
-	checkErr(err)
-
-	app.Session.UpdateStatus(0, "Ingredientes na panela.")
-
-	app.Session.ChannelMessageSendEmbed(app.Message.ChannelID, embed)
-
-	// Avisando finalização
-	app.Session.ChannelMessageSend(app.Message.ChannelID, "@here **Pedidos finalizados!**")
 }
 
-// add item
-func (app *App) addItem(client *Client) {
+// AddItem ...
+func (app *App) AddItem(client *Client) {
 	splitRegexp := regexp.MustCompile("[\n| ]")
 	split := splitRegexp.Split(app.Message.Content, 2)
 
@@ -97,8 +91,8 @@ func (app *App) addItem(client *Client) {
 	app.Session.ChannelMessageSend(app.Message.ChannelID, app.Message.Author.Mention()+" seu **pedido foi realizado** com sucesso.")
 }
 
-// remove item
-func (app *App) removeItem(client *Client) {
+// RemoveItem ...
+func (app *App) RemoveItem(client *Client) {
 	var item Item
 	row := app.Connection.QueryRow("select i.id from cart c inner join item i on c.id = i.cart_id where c.status = 1 and i.discord_user_id = ? and c.channel_id = ?", app.Message.Author.ID, app.Message.ChannelID)
 	err := row.Scan(&item.ID)
@@ -113,8 +107,8 @@ func (app *App) removeItem(client *Client) {
 	app.Session.ChannelMessageSend(app.Message.ChannelID, app.Message.Author.Mention()+" seu pedido foi **cancelado** com sucesso!")
 }
 
-// list items
-func (app *App) listItems(client *Client) {
+// ItemsByList ...
+func (app *App) ItemsByList(client *Client) {
 	embed := app.getCartContentsAsEmbed(app.Message.ChannelID, app.Session)
 	app.Session.ChannelMessageSendEmbed(app.Message.ChannelID, embed)
 }
