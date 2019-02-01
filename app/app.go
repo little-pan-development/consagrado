@@ -1,7 +1,6 @@
 package main
 
 import (
-	"database/sql"
 	"fmt"
 	"os"
 	"strings"
@@ -96,7 +95,7 @@ func (app *App) messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) 
 	router := NewRouter()
 
 	router.Handle("!criar", app.OpenList)
-	router.Handle("!finalizar", app.CloseList)
+	router.Handle("!finalizar", app.CloseList())
 	router.Handle("!pedir", app.AddItem)
 	router.Handle("!cancelar", app.RemoveItem)
 	router.Handle("!pedidos", app.ItemsByList)
@@ -107,19 +106,5 @@ func (app *App) messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) 
 
 	if handler, found := client.findHandler(command); found {
 		handler(client)
-	}
-}
-
-func checkCount(rows *sql.Rows) (count int) {
-	for rows.Next() {
-		err := rows.Scan(&count)
-		checkErr(err)
-	}
-	return count
-}
-
-func checkErr(err error) {
-	if err != nil {
-		panic(err)
 	}
 }
