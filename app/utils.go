@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -27,7 +29,9 @@ func (app *App) getCartContentsAsEmbed(channelID string, s *discordgo.Session) *
 	for rows.Next() {
 		var item Item
 		err = rows.Scan(&item.Description, &item.DiscordUserID)
-		checkErr(err)
+		if err != nil {
+			fmt.Println(err)
+		}
 
 		var user, _ = s.User(item.DiscordUserID)
 

@@ -57,27 +57,3 @@ func (app *App) createOrderByChannel(description, channelID string) string {
 
 	return idToString
 }
-
-// OpenList ...
-func (app *App) OpenList() {
-
-}
-
-// CloseList ...
-func (app *App) CloseList(channelID string) bool {
-
-	query := `UPDATE cart SET status = ? WHERE status = ? AND channel_id = ?`
-	stmt, err := app.Connection.Prepare(query)
-	if err != nil {
-		fmt.Println("Model CloseList [prepare]: ", err)
-		return false
-	}
-
-	_, err = stmt.Exec(0, 1, channelID)
-	if err != nil {
-		fmt.Println("Model CloseList [exec]: ", err)
-		return false
-	}
-
-	return true
-}

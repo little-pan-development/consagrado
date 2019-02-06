@@ -6,7 +6,7 @@ import (
 )
 
 // OpenList ...
-func OpenList() {
+func OpenList(app *App, description, channelID string) string {
 	query := `INSERT cart SET description = ?, status = ?, channel_id = ?`
 	stmt, err := app.Connection.Prepare(query)
 	if err != nil {

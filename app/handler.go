@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"regexp"
 
 	"github.com/bwmarrin/discordgo"
@@ -18,7 +19,9 @@ func (app *App) OpenList(client *Client) {
 
 	if len(split) == 1 {
 		_, err := app.Session.ChannelMessageSend(channelID, "Digite uma descrição para seu carrinho!")
-		checkErr(err)
+		if err != nil {
+			fmt.Println(err)
+		}
 		return
 	}
 
@@ -26,7 +29,9 @@ func (app *App) OpenList(client *Client) {
 
 	if rows > 0 {
 		_, err := app.Session.ChannelMessageSend(channelID, "Existe um carrinho em aberto!")
-		checkErr(err)
+		if err != nil {
+			fmt.Println(err)
+		}
 		return
 	}
 
@@ -57,7 +62,9 @@ func (app *App) AddItem(client *Client) {
 
 	if len(split) == 1 {
 		_, err := app.Session.ChannelMessageSend(app.Message.ChannelID, app.Message.Author.Mention()+", digite seu pedido. Por exemplo, `!pedir Lentilha da vó` :heart:")
-		checkErr(err)
+		if err != nil {
+			fmt.Println(err)
+		}
 		return
 	}
 
@@ -70,23 +77,33 @@ func (app *App) AddItem(client *Client) {
 		app.Session.ChannelMessageSend(app.Message.ChannelID, app.Message.Author.Mention()+", antes de pedirem, utilize `!criar nome do carrinho` para **criar um novo carrinho**.")
 		return
 	default:
-		checkErr(err)
+		if err != nil {
+			fmt.Println(err)
+		}
 	}
 
 	rows, err := app.Connection.Query("SELECT COUNT(*) FROM item WHERE discord_user_id = ? AND cart_id = ?", app.Message.Author.ID, cart.ID)
-	checkErr(err)
+	if err != nil {
+		fmt.Println(err)
+	}
 
 	if checkCount(rows) > 0 {
 		_, err := app.Session.ChannelMessageSend(app.Message.ChannelID, app.Message.Author.Mention()+" você já realizou seu pedido. Para **cancelar** digite `!cancelar`")
-		checkErr(err)
+		if err != nil {
+			fmt.Println(err)
+		}
 		return
 	}
 
 	stmt, err := app.Connection.Prepare("INSERT item SET description = ?, cart_id = ?, discord_user_id = ?")
-	checkErr(err)
+	if err != nil {
+		fmt.Println(err)
+	}
 
 	_, err = stmt.Exec(split[1], cart.ID, app.Message.Author.ID)
-	checkErr(err)
+	if err != nil {
+		fmt.Println(err)
+	}
 
 	app.Session.ChannelMessageSend(app.Message.ChannelID, app.Message.Author.Mention()+" seu **pedido foi realizado** com sucesso.")
 }
@@ -99,10 +116,14 @@ func (app *App) RemoveItem(client *Client) {
 
 	// select i.id from cart c inner join item i on c.id = i.cart_id where c.status = 1 and i.discord_user_id = "186909290475290624";
 	stmt, err := app.Connection.Prepare("delete from item where id = ?")
-	checkErr(err)
+	if err != nil {
+		fmt.Println(err)
+	}
 
 	_, err = stmt.Exec(item.ID)
-	checkErr(err)
+	if err != nil {
+		fmt.Println(err)
+	}
 
 	app.Session.ChannelMessageSend(app.Message.ChannelID, app.Message.Author.Mention()+" seu pedido foi **cancelado** com sucesso!")
 }
@@ -123,7 +144,9 @@ func (app *App) raffle(client *Client) {
 	// Isso pode ser aplicado melhor quando desacoplado
 	if err != sql.ErrNoRows {
 
-		checkErr(err)
+		if err != nil {
+			fmt.Println(err)
+		}
 
 		var user, _ = app.Session.User(discordUserID)
 

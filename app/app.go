@@ -7,6 +7,9 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 	_ "github.com/go-sql-driver/mysql"
+
+	"github.com/palmirinha/app/conn"
+	"github.com/palmirinha/app/models"
 )
 
 // Route is a command routing struct
@@ -27,13 +30,16 @@ func NewRouter() *Router {
 
 func main() {
 
+	app := models.App{}
+	app.Connection = conn.Mysql
+
 	dg, err := discordgo.New("Bot " + os.Getenv("DG_TOKEN"))
 	if err != nil {
 		fmt.Println("Failed to create discord session", err)
 	}
 
 	dg.AddHandler(ready)
-	dg.AddHandler(app.messageCreate)
+	dg.AddHandler(app.messageCreate())
 
 	err = dg.Open()
 	if err != nil {
@@ -95,7 +101,7 @@ func (app *App) messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) 
 	router := NewRouter()
 
 	router.Handle("!criar", app.OpenList)
-	router.Handle("!finalizar", app.CloseList())
+	router.Handle("!finalizar", models.CloseList(app))
 	router.Handle("!pedir", app.AddItem)
 	router.Handle("!cancelar", app.RemoveItem)
 	router.Handle("!pedidos", app.ItemsByList)
