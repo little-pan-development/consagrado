@@ -15,7 +15,7 @@ type List struct {
 // OpenList ...
 func OpenList(description, channelID string) string {
 	query := `INSERT cart SET description = ?, status = ?, channel_id = ?`
-	stmt, err := app.Connection.Prepare(query)
+	stmt, err := Connection.Mysql.Prepare(query)
 	if err != nil {
 		fmt.Println("Model OpenList [prepare]: ", err)
 	}
@@ -33,9 +33,8 @@ func OpenList(description, channelID string) string {
 
 // CloseList ...
 func CloseList(channelID string) bool {
-
 	query := `UPDATE cart SET status = ? WHERE status = ? AND channel_id = ?`
-	stmt, err := app.Connection.Prepare(query)
+	stmt, err := Connection.Mysql.Prepare(query)
 	if err != nil {
 		fmt.Println("Model CloseList [prepare]: ", err)
 		return false
@@ -52,10 +51,9 @@ func CloseList(channelID string) bool {
 
 // CountOpenList ...
 func CountOpenList(channelID string) uint {
-
 	var count uint
 	query := `SELECT COUNT(*) FROM cart WHERE status = 1 and channel_id = ?`
-	rows, err := app.Connection.Query(query, app.Message.ChannelID)
+	rows, err := Connection.Mysql.Query(query, channelID)
 
 	if err != nil {
 		fmt.Println(err)

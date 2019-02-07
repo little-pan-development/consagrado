@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"regexp"
+
+	"github.com/palmirinha/app/models"
 )
 
 // OpenList ...
@@ -22,36 +24,35 @@ func OpenList(bc *BotCommand) {
 	}
 	// ADD THIS TO MIDDLEWARE
 
-	// rows := app.countOpenOrderByChannelId(channelID)
+	rows := models.CountOpenList(channelID)
 
-	// if rows > 0 {
-	// 	_, err := s.ChannelMessageSend(channelID, "Existe um carrinho em aberto!")
-	// 	if err != nil {
-	// 		fmt.Println(err)
-	// 	}
-	// 	return
-	// }
+	if rows > 0 {
+		_, err := bc.session.ChannelMessageSend(channelID, "Existe um carrinho em aberto!")
+		if err != nil {
+			fmt.Println(err)
+		}
+		return
+	}
 
-	// id := app.createOrderByChannel(split[1], channelID)
+	id := models.OpenList(split[1], channelID)
 
-	// b.Session.UpdateStatus(0, "Faça seu pedido..")
-	// s.ChannelMessageSend(channelID, "Carrinho `#"+id+" "+split[1]+"` criado com sucesso!")
-	// b.Session.ChannelMessageSend(channelID, "Carrinho `#lalala criado com sucesso!")
+	bc.session.UpdateStatus(0, "Faça seu pedido..")
+	bc.session.ChannelMessageSend(channelID, "Carrinho `#"+id+" "+split[1]+"` criado com sucesso!")
 }
 
 // CloseList ...
-// func CloseList(s *discordgo.Session, m *discordgo.MessageCreate) {
-// 	// Lista dos pedidos
-// 	embed := app.getCartContentsAsEmbed(m.ChannelID, app.Session)
+func CloseList(bc *BotCommand) {
+	// 	// Lista dos pedidos
+	// 	embed := app.getCartContentsAsEmbed(m.ChannelID, app.Session)
 
-// 	if models.CloseList(m.ChannelID) {
-// 		s.UpdateStatus(0, "Ingredientes na panela.")
-// 		s.ChannelMessageSendEmbed(m.ChannelID, embed)
-// 		// Avisando finalização
-// 		s.ChannelMessageSend(m.ChannelID, "@here **Pedidos finalizados!**")
-// 	}
+	if models.CloseList(bc.message.ChannelID) {
+		bc.session.UpdateStatus(0, "Ingredientes na panela.")
+		// s.ChannelMessageSendEmbed(m.ChannelID, embed)
+		// Avisando finalização
+		bc.session.ChannelMessageSend(bc.message.ChannelID, "@here **Pedidos finalizados!**")
+	}
 
-// }
+}
 
 // // AddItem ...
 // func AddItem(s *discordgo.Session, m *discordgo.MessageCreate) {
