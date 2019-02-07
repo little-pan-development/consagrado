@@ -94,25 +94,21 @@ func AddItem(bc *BotCommand) {
 
 }
 
-// // RemoveItem ...
-// func RemoveItem(s *discordgo.Session, m *discordgo.MessageCreate) {
-// 	var item Item
-// 	row := app.Connection.QueryRow("select i.id from cart c inner join item i on c.id = i.cart_id where c.status = 1 and i.discord_user_id = ? and c.channel_id = ?", m.Author.ID, m.ChannelID)
-// 	err := row.Scan(&item.ID)
+// RemoveItem ...
+func RemoveItem(bc *BotCommand) {
 
-// 	// select i.id from cart c inner join item i on c.id = i.cart_id where c.status = 1 and i.discord_user_id = "186909290475290624";
-// 	stmt, err := app.Connection.Prepare("delete from item where id = ?")
-// 	if err != nil {
-// 		fmt.Println(err)
-// 	}
+	var item models.Item
+	item.DiscordUserID = bc.message.Author.ID
+	item = models.GetItem(&item, bc.message.ChannelID)
 
-// 	_, err = stmt.Exec(item.ID)
-// 	if err != nil {
-// 		fmt.Println(err)
-// 	}
+	deleted := models.RemoveItem(&item)
+	if deleted {
+		bc.session.ChannelMessageSend(bc.message.ChannelID, bc.message.Author.Mention()+" seu pedido foi **cancelado** com sucesso!")
+		return
+	}
 
-// 	s.ChannelMessageSend(m.ChannelID, m.Author.Mention()+" seu pedido foi **cancelado** com sucesso!")
-// }
+	return
+}
 
 // // ItemsByList ...
 // func ItemsByList(s *discordgo.Session, m *discordgo.MessageCreate) {

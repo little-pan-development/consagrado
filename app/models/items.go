@@ -6,18 +6,20 @@ import "fmt"
 type Item struct {
 	ID            uint
 	CartID        uint
-	Description   string
 	DiscordUserID string
+	Description   string
 }
 
 // AddItem ...
 func AddItem(item *Item) bool {
-
-	stmt, err := Connection.Mysql.Prepare("INSERT item SET description = ?, cart_id = ?, discord_user_id = ?")
+	query := `INSERT item SET description = ?, cart_id = ?, discord_user_id = ?`
+	stmt, err := Connection.Mysql.Prepare(query)
 	if err != nil {
 		fmt.Println("Model AddItem [prepare]: ", err)
 		return false
 	}
+
+	fmt.Println(item)
 
 	_, err = stmt.Exec(item.Description, item.CartID, item.DiscordUserID)
 	if err != nil {
@@ -29,21 +31,40 @@ func AddItem(item *Item) bool {
 }
 
 // RemoveItem ...
-func RemoveItem() {
+func RemoveItem(item *Item) bool {
+	query := `DELETE FROM item WHERE id = ?`
+	stmt, err := Connection.Mysql.Prepare(query)
+	if err != nil {
+		fmt.Println("Model RemoveItem [prepare]: ", err)
+		return false
+	}
 
-	// var item Item
-	// row := app.Connection.QueryRow("select i.id from cart c inner join item i on c.id = i.cart_id where c.status = 1 and i.discord_user_id = ? and c.channel_id = ?", m.Author.ID, m.ChannelID)
-	// err := row.Scan(&item.ID)
+	_, err = stmt.Exec(&item.ID)
+	if err != nil {
+		fmt.Println("Model RemoveItem [exec]: ", err)
+		return false
+	}
 
-	// // select i.id from cart c inner join item i on c.id = i.cart_id where c.status = 1 and i.discord_user_id = "186909290475290624";
-	// stmt, err := app.Connection.Prepare("delete from item where id = ?")
-	// if err != nil {
-	// 	fmt.Println(err)
-	// }
+	return true
+}
 
-	// _, err = stmt.Exec(item.ID)
-	// if err != nil {
-	// 	fmt.Println(err)
-	// }
+// GetItem ...
+func GetItem(item *Item, channelID string) Item {
+	var getItem Item
+	query := `SELECT 
+				item.id, item.description, item.discord_user_id 
+			FROM 
+				item
+			INNER JOIN cart ON item.cart_id = cart.id
+			WHERE cart.status = TRUE
+			AND cart.channel_id = ?
+			AND item.discord_user_id = ?`
 
+	row := Connection.Mysql.QueryRow(query, item.DiscordUserID, channelID)
+	err := row.Scan(&getItem.ID, &getItem.Description, &getItem.DiscordUserID)
+	if err != nil {
+		fmt.Println("Model GetItem [scan]: ", err)
+	}
+
+	return getItem
 }
