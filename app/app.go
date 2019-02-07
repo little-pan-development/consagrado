@@ -6,111 +6,49 @@ import (
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
-	_ "github.com/go-sql-driver/mysql"
-
-	"github.com/palmirinha/app/conn"
-	"github.com/palmirinha/app/models"
 )
-
-// Route is a command routing struct
-type Route struct {
-	Description string
-	Handler     func()
-}
-
-// Routes is a pseudo routing map for our command strings
-type Routes map[string]Route
-
-// NewRouter ...
-func NewRouter() *Router {
-	return &Router{
-		rules: make(map[string]Handler),
-	}
-}
 
 func main() {
 
-	app := models.App{}
-	app.Connection = conn.Mysql
-
-	dg, err := discordgo.New("Bot " + os.Getenv("DG_TOKEN"))
+	discord, err := discordgo.New("Bot " + os.Getenv("DG_TOKEN"))
 	if err != nil {
 		fmt.Println("Failed to create discord session", err)
 	}
 
-	dg.AddHandler(ready)
-	dg.AddHandler(app.messageCreate())
+	discord.AddHandler(ready)
+	discord.AddHandler(messageCreate)
 
-	err = dg.Open()
+	err = discord.Open()
 	if err != nil {
 		fmt.Println("Unable to establish connection", err)
 	}
 
-	defer dg.Close()
-
-	<-make(chan struct{})
+	fmt.Println("Listening...")
+	lock := make(chan int)
+	<-lock
 }
 
 func ready(s *discordgo.Session, event *discordgo.Ready) {
 	s.UpdateStatus(0, "Ingredientes na panela")
 }
 
-// Router ...
-type Router struct {
-	rules map[string]Handler
-}
-
-// Handle ...
-func (r *Router) Handle(msgName string, handler Handler) {
-	r.rules[msgName] = handler
-}
-
-// FindHandler ...
-func (r *Router) FindHandler(msgName string) (Handler, bool) {
-	handler, found := r.rules[msgName]
-	return handler, found
-}
-
-// Handler ...
-type Handler func(*Client)
-
-// FindHandler ...
-type FindHandler func(string) (Handler, bool)
-
-// Client ...
-type Client struct {
-	findHandler FindHandler
-}
-
-// NewClient ...
-func NewClient(findHandler FindHandler) *Client {
-	return &Client{
-		findHandler: findHandler,
-	}
-}
-
-func (app *App) messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
-
+func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if m.Author.ID == s.State.User.ID {
 		return
 	}
 
-	app.Session = s
-	app.Message = m
-
 	router := NewRouter()
+	router.Handle("!criar", OpenList)
+	// router.Handle("!finalizar", CloseList(s, m))
+	// router.Handle("!pedir", AddItem(s, m))
+	// router.Handle("!cancelar", RemoveItem(s, m))
+	// router.Handle("!pedidos", ItemsByList(s, m))
+	// router.Handle("!sortear", raffle(s, m))
 
-	router.Handle("!criar", app.OpenList)
-	router.Handle("!finalizar", models.CloseList(app))
-	router.Handle("!pedir", app.AddItem)
-	router.Handle("!cancelar", app.RemoveItem)
-	router.Handle("!pedidos", app.ItemsByList)
-	router.Handle("!sortear", app.raffle)
-
-	client := NewClient(router.FindHandler)
+	bc := NewBotCommand(router.FindHandler, s, m)
 	command := strings.Split(m.Content, " ")[0]
 
-	if handler, found := client.findHandler(command); found {
-		handler(client)
+	if handler, found := bc.findHandler(command); found {
+		handler(bc)
 	}
 }
