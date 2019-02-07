@@ -1,26 +1,26 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"regexp"
+)
 
 // OpenList ...
 func OpenList(bc *BotCommand) {
 	channelID := bc.message.ChannelID
 
-	_, err := bc.session.ChannelMessageSend(channelID, "Função !criar")
-	if err != nil {
-		fmt.Println(err)
+	// ADD THIS TO MIDDLEWARE
+	splitRegexp := regexp.MustCompile("[\n| ]")
+	split := splitRegexp.Split(bc.message.Content, 2)
+
+	if len(split) == 1 {
+		_, err := bc.session.ChannelMessageSend(channelID, "Digite uma descrição para seu carrinho!")
+		if err != nil {
+			fmt.Println(err)
+		}
+		return
 	}
-
-	// splitRegexp := regexp.MustCompile("[\n| ]")
-	// split := splitRegexp.Split(b.Message.Content, 2)
-
-	// if len(split) == 1 {
-	// 	_, err := b.Session.ChannelMessageSend(channelID, "Digite uma descrição para seu carrinho!")
-	// 	if err != nil {
-	// 		fmt.Println(err)
-	// 	}
-	// 	return
-	// }
+	// ADD THIS TO MIDDLEWARE
 
 	// rows := app.countOpenOrderByChannelId(channelID)
 
