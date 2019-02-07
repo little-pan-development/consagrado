@@ -68,3 +68,26 @@ func GetItem(item *Item, channelID string) Item {
 
 	return getItem
 }
+
+// GetItemsByListID ...
+func GetItemsByListID(list *List) []Item {
+	var items []Item
+
+	query := `SELECT description, discord_user_id FROM item WHERE cart_id = ?`
+	rows, err := Connection.Mysql.Query(query, list.ID)
+	if err != nil {
+		fmt.Println("Model GetItemsByListID [query]: ", err)
+	}
+
+	for rows.Next() {
+		var item Item
+		err = rows.Scan(&item.Description, &item.DiscordUserID)
+		if err != nil {
+			fmt.Println("Model GetItemsByListID [next]: ", err)
+		}
+
+		items = append(items, item)
+	}
+
+	return items
+}

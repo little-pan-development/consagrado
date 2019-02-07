@@ -9,7 +9,8 @@ import (
 type List struct {
 	ID          uint
 	Description string
-	Item        []Item
+	channelID   string
+	Items       []Item
 }
 
 // OpenList ...
@@ -70,10 +71,10 @@ func CountOpenList(channelID string) uint {
 func GetOpenListByChannelID(channelID string) List {
 	var list List
 
-	query := `SELECT id, description FROM cart WHERE status = 1 and channel_id = ?`
+	query := `SELECT id, description, channel_id FROM cart WHERE status = 1 and channel_id = ?`
 	row := Connection.Mysql.QueryRow(query, channelID)
 
-	err := row.Scan(&list.ID, &list.Description)
+	err := row.Scan(&list.ID, &list.Description, &list.channelID)
 	if err != nil {
 		fmt.Println("Model GetOpenListByChannelID [scan]: ", err)
 	}
