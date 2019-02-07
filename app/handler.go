@@ -56,7 +56,6 @@ func CloseList(bc *BotCommand) {
 
 // AddItem ...
 func AddItem(bc *BotCommand) {
-
 	// MOVE THIS TO MIDDLEWARE
 	splitRegexp := regexp.MustCompile("[\n| ]")
 	split := splitRegexp.Split(bc.message.Content, 2)
@@ -114,9 +113,8 @@ func ListItems(bc *BotCommand) {
 	items := models.GetItemsByListID(&list)
 	list.Items = items
 
-	fmt.Println(list)
-	// 	embed := app.getCartContentsAsEmbed(m.ChannelID, app.Session)
-	// 	s.ChannelMessageSendEmbed(m.ChannelID, embed)
+	embedListItems := EmbedListItems(&list, bc)
+	bc.session.ChannelMessageSendEmbed(bc.message.ChannelID, embedListItems)
 }
 
 // RaffleList ...

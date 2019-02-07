@@ -1,10 +1,9 @@
 package main
 
-// import (
-// 	"fmt"
-
-// 	"github.com/bwmarrin/discordgo"
-// )
+import (
+	"github.com/bwmarrin/discordgo"
+	"github.com/palmirinha/app/models"
+)
 
 // func (app *App) getCartContentsAsEmbed(channelID string, s *discordgo.Session) *discordgo.MessageEmbed {
 // 	var cart Cart
@@ -44,3 +43,25 @@ package main
 
 // 	return embed
 // }
+
+// EmbedListItems ...
+func EmbedListItems(list *models.List, bc *BotCommand) *discordgo.MessageEmbed {
+
+	embed := &discordgo.MessageEmbed{}
+	embed.Fields = []*discordgo.MessageEmbedField{}
+
+	embed.Title = "Pedidos até o momento:"
+	embed.Description = "**--** :hamburger: **--**"
+	embed.Color = 0xff0000
+
+	for _, item := range list.Items {
+		var user, _ = bc.session.User(item.DiscordUserID)
+		embed.Fields = append(embed.Fields, &discordgo.MessageEmbedField{
+			Name:   "\n\n**" + user.Username + "**",
+			Value:  item.Description,
+			Inline: false,
+		})
+	}
+
+	return embed
+}
