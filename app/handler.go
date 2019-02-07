@@ -11,7 +11,7 @@ import (
 func OpenList(bc *BotCommand) {
 	channelID := bc.message.ChannelID
 
-	// ADD THIS TO MIDDLEWARE
+	// MOVE THIS TO MIDDLEWARE
 	splitRegexp := regexp.MustCompile("[\n| ]")
 	split := splitRegexp.Split(bc.message.Content, 2)
 
@@ -22,7 +22,7 @@ func OpenList(bc *BotCommand) {
 		}
 		return
 	}
-	// ADD THIS TO MIDDLEWARE
+	// MOVE THIS TO MIDDLEWARE
 
 	rows := models.CountOpenList(channelID)
 
@@ -54,58 +54,45 @@ func CloseList(bc *BotCommand) {
 
 }
 
-// // AddItem ...
-// func AddItem(s *discordgo.Session, m *discordgo.MessageCreate) {
-// 	splitRegexp := regexp.MustCompile("[\n| ]")
-// 	split := splitRegexp.Split(m.Content, 2)
+// AddItem ...
+func AddItem(bc *BotCommand) {
 
-// 	if len(split) == 1 {
-// 		_, err := s.ChannelMessageSend(m.ChannelID, m.Author.Mention()+", digite seu pedido. Por exemplo, `!pedir Lentilha da vó` :heart:")
-// 		if err != nil {
-// 			fmt.Println(err)
-// 		}
-// 		return
-// 	}
+	// MOVE THIS TO MIDDLEWARE
+	splitRegexp := regexp.MustCompile("[\n| ]")
+	split := splitRegexp.Split(bc.message.Content, 2)
 
-// 	var cart Cart
-// 	row := app.Connection.QueryRow("SELECT id, description FROM cart WHERE status = 1 and channel_id = ?", m.ChannelID)
-// 	err := row.Scan(&cart.ID, &cart.Description)
+	if len(split) == 1 {
+		_, err := bc.session.ChannelMessageSend(bc.message.ChannelID, bc.message.Author.Mention()+", digite seu pedido. Por exemplo, `!pedir Lentilha da vó` :heart:")
+		if err != nil {
+			fmt.Println(err)
+		}
+		return
+	}
+	// MOVE THIS TO MIDDLEWARE
 
-// 	switch err {
-// 	case sql.ErrNoRows:
-// 		s.ChannelMessageSend(m.ChannelID, m.Author.Mention()+", antes de pedirem, utilize `!criar nome do carrinho` para **criar um novo carrinho**.")
-// 		return
-// 	default:
-// 		if err != nil {
-// 			fmt.Println(err)
-// 		}
-// 	}
+	quantityOfList := models.CountOpenList(bc.message.ChannelID)
+	if quantityOfList == 0 {
+		_, err := bc.session.ChannelMessageSend(bc.message.ChannelID, "Para realizar um pedido é necessário ter um carrinho aberto. `!criar [nome]`")
+		if err != nil {
+			fmt.Println(err)
+		}
+		return
+	}
 
-// 	_, err = app.Connection.Query("SELECT COUNT(*) FROM item WHERE discord_user_id = ? AND cart_id = ?", m.Author.ID, cart.ID)
-// 	if err != nil {
-// 		fmt.Println(err)
-// 	}
+	cart := models.GetOpenListByChannelID(bc.message.ChannelID)
 
-// 	// if checkCount(rows) > 0 {
-// 	// 	_, err := s.ChannelMessageSend(m.ChannelID, m.Author.Mention()+" você já realizou seu pedido. Para **cancelar** digite `!cancelar`")
-// 	// 	if err != nil {
-// 	// 		fmt.Println(err)
-// 	// 	}
-// 	// 	return
-// 	// }
+	var item models.Item
+	item.CartID = cart.ID
+	item.Description = split[1]
+	item.DiscordUserID = bc.message.Author.ID
 
-// 	stmt, err := app.Connection.Prepare("INSERT item SET description = ?, cart_id = ?, discord_user_id = ?")
-// 	if err != nil {
-// 		fmt.Println(err)
-// 	}
+	added := models.AddItem(&item)
+	if added {
+		bc.session.ChannelMessageSend(bc.message.ChannelID, bc.message.Author.Mention()+" seu **pedido foi realizado** com sucesso.")
+		return
+	}
 
-// 	_, err = stmt.Exec(split[1], cart.ID, m.Author.ID)
-// 	if err != nil {
-// 		fmt.Println(err)
-// 	}
-
-// 	s.ChannelMessageSend(m.ChannelID, m.Author.Mention()+" seu **pedido foi realizado** com sucesso.")
-// }
+}
 
 // // RemoveItem ...
 // func RemoveItem(s *discordgo.Session, m *discordgo.MessageCreate) {

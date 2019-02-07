@@ -40,7 +40,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	router := NewRouter()
 	router.Handle("!criar", OpenList)
 	router.Handle("!finalizar", CloseList)
-	// router.Handle("!pedir", AddItem(s, m))
+	router.Handle("!pedir", AddItem)
 	// router.Handle("!cancelar", RemoveItem(s, m))
 	// router.Handle("!pedidos", ItemsByList(s, m))
 	// router.Handle("!sortear", raffle(s, m))

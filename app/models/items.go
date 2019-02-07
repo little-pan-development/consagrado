@@ -1,24 +1,31 @@
 package models
 
+import "fmt"
+
 // Item of the list
 type Item struct {
 	ID            uint
+	CartID        uint
 	Description   string
 	DiscordUserID string
 }
 
 // AddItem ...
-func AddItem() {
+func AddItem(item *Item) bool {
 
-	// stmt, err := app.Connection.Prepare("INSERT item SET description = ?, cart_id = ?, discord_user_id = ?")
-	// if err != nil {
-	// 	fmt.Println(err)
-	// }
+	stmt, err := Connection.Mysql.Prepare("INSERT item SET description = ?, cart_id = ?, discord_user_id = ?")
+	if err != nil {
+		fmt.Println("Model AddItem [prepare]: ", err)
+		return false
+	}
 
-	// _, err = stmt.Exec(split[1], cart.ID, m.Author.ID)
-	// if err != nil {
-	// 	fmt.Println(err)
-	// }
+	_, err = stmt.Exec(item.Description, item.CartID, item.DiscordUserID)
+	if err != nil {
+		fmt.Println("Model AddItem [exec]: ", err)
+		return false
+	}
+
+	return true
 }
 
 // RemoveItem ...

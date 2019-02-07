@@ -65,3 +65,18 @@ func CountOpenList(channelID string) uint {
 
 	return count
 }
+
+// GetOpenListByChannelID ...
+func GetOpenListByChannelID(channelID string) List {
+	var list List
+
+	query := `SELECT id, description FROM cart WHERE status = 1 and channel_id = ?`
+	row := Connection.Mysql.QueryRow(query, channelID)
+
+	err := row.Scan(&list.ID, &list.Description)
+	if err != nil {
+		fmt.Println("Model GetOpenListByChannelID [scan]: ", err)
+	}
+
+	return list
+}
