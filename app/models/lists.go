@@ -81,3 +81,22 @@ func GetOpenListByChannelID(channelID string) List {
 
 	return list
 }
+
+// RaffleList ...
+func RaffleList(channelID string) string {
+	var Chosen string
+	query := `
+		SELECT item.discord_user_id 
+		FROM cart
+		JOIN item ON item.cart_id = cart.id 
+		WHERE cart.status = 1 
+		AND cart.channel_id = ? ORDER BY RAND() LIMIT 1
+	`
+	row := Connection.Mysql.QueryRow(query, channelID)
+	err := row.Scan(&Chosen)
+	if err != nil {
+		fmt.Println("Model RaffleList [scan]: ", err)
+	}
+
+	return Chosen
+}

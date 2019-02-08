@@ -44,14 +44,12 @@ func OpenList(bc *BotCommand) {
 func CloseList(bc *BotCommand) {
 	// 	// Lista dos pedidos
 	// 	embed := app.getCartContentsAsEmbed(m.ChannelID, app.Session)
-
 	if models.CloseList(bc.message.ChannelID) {
 		bc.session.UpdateStatus(0, "Ingredientes na panela.")
 		// s.ChannelMessageSendEmbed(m.ChannelID, embed)
 		// Avisando finalização
 		bc.session.ChannelMessageSend(bc.message.ChannelID, "@here **Pedidos finalizados!**")
 	}
-
 }
 
 // AddItem ...
@@ -104,6 +102,8 @@ func RemoveItem(bc *BotCommand) {
 		bc.session.ChannelMessageSend(bc.message.ChannelID, bc.message.Author.Mention()+" seu pedido foi **cancelado** com sucesso!")
 		return
 	}
+
+	bc.session.ChannelMessageSend(bc.message.ChannelID, bc.message.Author.Mention()+" **não** foi possivel **cancelar** seu pedido!")
 	return
 }
 
@@ -117,34 +117,9 @@ func ListItems(bc *BotCommand) {
 	bc.session.ChannelMessageSendEmbed(bc.message.ChannelID, embedListItems)
 }
 
-// RaffleList ...
-func RaffleList(bc *BotCommand) {
-	// 	var discordUserID string
-	// 	row := app.Connection.QueryRow("SELECT i.discord_user_id FROM cart c JOIN item i ON i.cart_id = c.id WHERE c.status = 1 and c.channel_id = ? ORDER BY RAND() LIMIT 1", m.ChannelID)
-	// 	err := row.Scan(&discordUserID)
-
-	// 	// Isso pode ser aplicado melhor quando desacoplado
-	// 	if err != sql.ErrNoRows {
-
-	// 		if err != nil {
-	// 			fmt.Println(err)
-	// 		}
-
-	// 		var user, _ = s.User(discordUserID)
-
-	// 		embed := &discordgo.MessageEmbed{}
-
-	// 		embed.Title = "Parabéns! Hoje é com..."
-	// 		embed.Description = user.Mention() + " contamos com você!"
-	// 		embed.Color = 0xff0000
-
-	// 		embed.Author = &discordgo.MessageEmbedAuthor{}
-	// 		embed.Author.Name = "Palmirinha!"
-	// 		embed.Author.URL = "https://www.facebook.com/vovopalmirinha/"
-	// 		embed.Author.IconURL = "https://i.imgur.com/QTDVdLK.jpg"
-
-	// 		s.ChannelMessageSendEmbed(m.ChannelID, embed)
-	// 	} else {
-	// 		s.ChannelMessageSend(m.ChannelID, m.Author.Mention()+" **não há pedidos para sortear.**")
-	// 	}
+// RaffleListItems ...
+func RaffleListItems(bc *BotCommand) {
+	Chosen := models.RaffleList(bc.message.ChannelID)
+	embedRaffleListItems := EmbedRaffleListItems(Chosen, bc)
+	bc.session.ChannelMessageSendEmbed(bc.message.ChannelID, embedRaffleListItems)
 }

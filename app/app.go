@@ -43,7 +43,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	router.Handle("!pedir", AddItem)
 	// router.Handle("!cancelar", RemoveItem(s, m))
 	router.Handle("!pedidos", ListItems)
-	// router.Handle("!sortear", raffle(s, m))
+	router.Handle("!sortear", RaffleListItems)
 
 	bc := NewBotCommand(router.FindHandler, s, m)
 	command := strings.Split(m.Content, " ")[0]
