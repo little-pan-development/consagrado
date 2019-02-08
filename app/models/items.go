@@ -12,14 +12,15 @@ type Item struct {
 
 // AddItem ...
 func AddItem(item *Item) bool {
-	query := `INSERT item SET description = ?, cart_id = ?, discord_user_id = ?`
+	query := `
+		INSERT item 
+		SET description = ?, cart_id = ?, discord_user_id = ?
+	`
 	stmt, err := Connection.Mysql.Prepare(query)
 	if err != nil {
 		fmt.Println("Model AddItem [prepare]: ", err)
 		return false
 	}
-
-	fmt.Println(item)
 
 	_, err = stmt.Exec(item.Description, item.CartID, item.DiscordUserID)
 	if err != nil {
@@ -32,7 +33,11 @@ func AddItem(item *Item) bool {
 
 // RemoveItem ...
 func RemoveItem(item *Item) bool {
-	query := `DELETE FROM item WHERE id = ?`
+	query := `
+		DELETE 
+		FROM item 
+		WHERE id = ?
+	`
 	stmt, err := Connection.Mysql.Prepare(query)
 	if err != nil {
 		fmt.Println("Model RemoveItem [prepare]: ", err)
@@ -59,7 +64,6 @@ func GetItem(item *Item, channelID string) Item {
 		AND cart.channel_id = ?
 		AND item.discord_user_id = ?
 	`
-
 	row := Connection.Mysql.QueryRow(query, item.DiscordUserID, channelID)
 	err := row.Scan(&getItem.ID, &getItem.Description, &getItem.DiscordUserID)
 	if err != nil {

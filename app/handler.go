@@ -10,7 +10,6 @@ import (
 // OpenList ...
 func OpenList(bc *BotCommand) {
 	channelID := bc.message.ChannelID
-
 	// MOVE THIS TO MIDDLEWARE
 	splitRegexp := regexp.MustCompile("[\n| ]")
 	split := splitRegexp.Split(bc.message.Content, 2)
@@ -25,7 +24,6 @@ func OpenList(bc *BotCommand) {
 	// MOVE THIS TO MIDDLEWARE
 
 	rows := models.CountOpenList(channelID)
-
 	if rows > 0 {
 		_, err := bc.session.ChannelMessageSend(channelID, "Existe um carrinho em aberto!")
 		if err != nil {
@@ -42,12 +40,9 @@ func OpenList(bc *BotCommand) {
 
 // CloseList ...
 func CloseList(bc *BotCommand) {
-	// 	// Lista dos pedidos
-	// 	embed := app.getCartContentsAsEmbed(m.ChannelID, app.Session)
+	ListItems(bc)
 	if models.CloseList(bc.message.ChannelID) {
 		bc.session.UpdateStatus(0, "Ingredientes na panela.")
-		// s.ChannelMessageSendEmbed(m.ChannelID, embed)
-		// Avisando finalização
 		bc.session.ChannelMessageSend(bc.message.ChannelID, "@here **Pedidos finalizados!**")
 	}
 }

@@ -15,7 +15,10 @@ type List struct {
 
 // OpenList ...
 func OpenList(description, channelID string) string {
-	query := `INSERT cart SET description = ?, status = ?, channel_id = ?`
+	query := `
+		INSERT cart 
+		SET description = ?, status = ?, channel_id = ?
+	`
 	stmt, err := Connection.Mysql.Prepare(query)
 	if err != nil {
 		fmt.Println("Model OpenList [prepare]: ", err)
@@ -34,7 +37,12 @@ func OpenList(description, channelID string) string {
 
 // CloseList ...
 func CloseList(channelID string) bool {
-	query := `UPDATE cart SET status = ? WHERE status = ? AND channel_id = ?`
+	query := `
+		UPDATE cart 
+		SET status = ? 
+		WHERE status = ? 
+		AND channel_id = ?
+	`
 	stmt, err := Connection.Mysql.Prepare(query)
 	if err != nil {
 		fmt.Println("Model CloseList [prepare]: ", err)
@@ -53,9 +61,13 @@ func CloseList(channelID string) bool {
 // CountOpenList ...
 func CountOpenList(channelID string) uint {
 	var count uint
-	query := `SELECT COUNT(*) FROM cart WHERE status = 1 and channel_id = ?`
+	query := `
+		SELECT COUNT(*) 
+		FROM cart 
+		WHERE status = 1 
+		AND channel_id = ?
+	`
 	rows, err := Connection.Mysql.Query(query, channelID)
-
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -70,15 +82,12 @@ func CountOpenList(channelID string) uint {
 // GetOpenListByChannelID ...
 func GetOpenListByChannelID(channelID string) List {
 	var list List
-
 	query := `SELECT id, description, channel_id FROM cart WHERE status = 1 and channel_id = ?`
 	row := Connection.Mysql.QueryRow(query, channelID)
-
 	err := row.Scan(&list.ID, &list.Description, &list.channelID)
 	if err != nil {
 		fmt.Println("Model GetOpenListByChannelID [scan]: ", err)
 	}
-
 	return list
 }
 
