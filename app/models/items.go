@@ -51,14 +51,14 @@ func RemoveItem(item *Item) bool {
 // GetItem ...
 func GetItem(item *Item, channelID string) Item {
 	var getItem Item
-	query := `SELECT 
-				item.id, item.description, item.discord_user_id 
-			FROM 
-				item
-			INNER JOIN cart ON item.cart_id = cart.id
-			WHERE cart.status = TRUE
-			AND cart.channel_id = ?
-			AND item.discord_user_id = ?`
+	query := `
+		SELECT item.id, item.description, item.discord_user_id 
+		FROM item
+		INNER JOIN cart ON item.cart_id = cart.id
+		WHERE cart.status = TRUE
+		AND cart.channel_id = ?
+		AND item.discord_user_id = ?
+	`
 
 	row := Connection.Mysql.QueryRow(query, item.DiscordUserID, channelID)
 	err := row.Scan(&getItem.ID, &getItem.Description, &getItem.DiscordUserID)
@@ -72,8 +72,11 @@ func GetItem(item *Item, channelID string) Item {
 // GetItemsByListID ...
 func GetItemsByListID(list *List) []Item {
 	var items []Item
-
-	query := `SELECT description, discord_user_id FROM item WHERE cart_id = ?`
+	query := `
+		SELECT description, discord_user_id 
+		FROM item 
+		WHERE cart_id = ?
+	`
 	rows, err := Connection.Mysql.Query(query, list.ID)
 	if err != nil {
 		fmt.Println("Model GetItemsByListID [query]: ", err)
@@ -90,4 +93,27 @@ func GetItemsByListID(list *List) []Item {
 	}
 
 	return items
+}
+
+// HasItem ...
+func HasItem(list *List, author string) bool {
+	var hasItem bool
+	query := `
+		SELECT IF(COUNT(id) > 0, true, false) as hasItem
+		FROM item 
+		WHERE discord_user_id = ? 
+		AND cart_id = ?
+		LIMIT 1
+	`
+	row := Connection.Mysql.QueryRow(query, author, list.ID)
+	err := row.Scan(&hasItem)
+	if err != nil {
+		fmt.Println("Model HasItem [scan]: ", err)
+	}
+
+	if !hasItem {
+		return false
+	}
+
+	return true
 }

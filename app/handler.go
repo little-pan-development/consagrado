@@ -76,10 +76,16 @@ func AddItem(bc *BotCommand) {
 		return
 	}
 
-	cart := models.GetOpenListByChannelID(bc.message.ChannelID)
+	list := models.GetOpenListByChannelID(bc.message.ChannelID)
+	userHasItemInList := models.HasItem(&list, bc.message.Author.ID)
+
+	if userHasItemInList {
+		bc.session.ChannelMessageSend(bc.message.ChannelID, bc.message.Author.Mention()+" você já realizou seu pedido. Para **cancelar** digite `!cancelar`")
+		return
+	}
 
 	var item models.Item
-	item.CartID = cart.ID
+	item.CartID = list.ID
 	item.Description = split[1]
 	item.DiscordUserID = bc.message.Author.ID
 
@@ -88,6 +94,9 @@ func AddItem(bc *BotCommand) {
 		bc.session.ChannelMessageSend(bc.message.ChannelID, bc.message.Author.Mention()+" seu **pedido foi realizado** com sucesso.")
 		return
 	}
+
+	bc.session.ChannelMessageSend(bc.message.ChannelID, bc.message.Author.Mention()+" por algum motivo seu pedido não foi realizado. Entre em contato com um administrador.")
+	return
 
 }
 

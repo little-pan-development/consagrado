@@ -90,7 +90,9 @@ func RaffleList(channelID string) string {
 		FROM cart
 		JOIN item ON item.cart_id = cart.id 
 		WHERE cart.status = 1 
-		AND cart.channel_id = ? ORDER BY RAND() LIMIT 1
+		AND cart.channel_id = ? 
+		ORDER BY RAND() 
+		LIMIT 1
 	`
 	row := Connection.Mysql.QueryRow(query, channelID)
 	err := row.Scan(&Chosen)
