@@ -39,11 +39,12 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 
 	router := NewRouter()
+	router.Handle("!cancelar", RemoveItem)
 	router.Handle("!criar", OpenList)
 	router.Handle("!finalizar", CloseList)
 	router.Handle("!pedir", AddItem)
-	router.Handle("!cancelar", RemoveItem)
 	router.Handle("!pedidos", ListItems)
+	router.Handle("!reverter", RevertListItems)
 	router.Handle("!sortear", RaffleListItems)
 
 	bc := NewBotCommand(router.FindHandler, s, m)
