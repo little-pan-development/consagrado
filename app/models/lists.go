@@ -150,8 +150,8 @@ func UpdateList(list *List, channelID string) bool {
 }
 
 // RaffleList ...
-func RaffleList(channelID string) string {
-	var Chosen string
+func RaffleList(channelID string) (Chosen string, userErr error) {
+	// var Chosen string
 	query := `
 		SELECT item.discord_user_id 
 		FROM cart
@@ -163,9 +163,13 @@ func RaffleList(channelID string) string {
 	`
 	row := Connection.Mysql.QueryRow(query, channelID)
 	err := row.Scan(&Chosen)
-	if err != nil {
-		fmt.Println("Model RaffleList [scan]: ", err)
+
+	if err == sql.ErrNoRows {
+		userErr = errors.New("Não há um carrinho aberto, crie com o comando `!criar [nome]`")
+	} else if err != nil {
+		userErr = errors.New("Erro ao buscar último carrinho criado")
+		fmt.Println("Model RaffleList [scan]: ", err, sql.ErrNoRows)
 	}
 
-	return Chosen
+	return Chosen, userErr
 }

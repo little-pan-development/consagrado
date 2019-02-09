@@ -127,7 +127,11 @@ func ListItems(bc *BotCommand) {
 
 // RaffleListItems ...
 func RaffleListItems(bc *BotCommand) {
-	Chosen := models.RaffleList(bc.message.ChannelID)
+	Chosen, err := models.RaffleList(bc.message.ChannelID)
+	if err != nil {
+		bc.session.ChannelMessageSend(bc.message.ChannelID, err.Error())
+		return
+	}
 	embedRaffleListItems := EmbedRaffleListItems(Chosen, bc)
 	bc.session.ChannelMessageSendEmbed(bc.message.ChannelID, embedRaffleListItems)
 }
