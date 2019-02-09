@@ -1,4 +1,4 @@
-CREATE SCHEMA IF NOT EXISTS `palmirinha` DEFAULT CHARACTER SET utf8 ;
+CREATE SCHEMA IF NOT EXISTS `palmirinha` DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci;
 USE `palmirinha` ;
 
 -- -----------------------------------------------------
@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS `palmirinha`.`cart` (
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`))
-ENGINE = InnoDB;
+ENGINE = InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- -----------------------------------------------------
 -- Table `palmirinha`.`item`
@@ -31,4 +31,4 @@ CREATE TABLE IF NOT EXISTS `palmirinha`.`item` (
     REFERENCES `palmirinha`.`cart` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
-ENGINE = InnoDB;
+ENGINE = InnoDB DEFAULT CHARSET=utf8mb4;
