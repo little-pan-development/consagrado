@@ -71,7 +71,7 @@ func AddItem(bc *BotCommand) {
 		return
 	}
 
-	list := models.GetOpenListByChannelID(bc.message.ChannelID)
+	list, _ := models.GetOpenListByChannelID(bc.message.ChannelID)
 	userHasItemInList := models.HasItem(&list, bc.message.Author.ID)
 
 	if userHasItemInList {
@@ -113,7 +113,11 @@ func RemoveItem(bc *BotCommand) {
 
 // ListItems ...
 func ListItems(bc *BotCommand) {
-	list := models.GetOpenListByChannelID(bc.message.ChannelID)
+	list, err := models.GetOpenListByChannelID(bc.message.ChannelID)
+	if err != nil {
+		bc.session.ChannelMessageSend(bc.message.ChannelID, "Não há um carrinho aberto, crie com o comando `!criar [nome]`")
+		return
+	}
 	items := models.GetItemsByListID(&list)
 	list.Items = items
 
