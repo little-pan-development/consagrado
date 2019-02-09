@@ -115,7 +115,7 @@ func RemoveItem(bc *BotCommand) {
 func ListItems(bc *BotCommand) {
 	list, err := models.GetOpenListByChannelID(bc.message.ChannelID)
 	if err != nil {
-		bc.session.ChannelMessageSend(bc.message.ChannelID, "Não há um carrinho aberto, crie com o comando `!criar [nome]`")
+		bc.session.ChannelMessageSend(bc.message.ChannelID, err.Error())
 		return
 	}
 	items := models.GetItemsByListID(&list)
