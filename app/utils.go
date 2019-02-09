@@ -19,14 +19,13 @@ func EmbedListItems(list *models.List, bc *BotCommand) *discordgo.MessageEmbed {
 	embed.Author.IconURL = "https://i.imgur.com/QTDVdLK.jpg"
 
 	embed.Title = "**Comanda:** __" + list.Description + "__"
-	embed.Description = "Pedidos até o momento:"
+	embed.Description = "**" + strconv.Itoa(len(list.Items)) + "** pedido(s) até o momento:"
 	embed.Color = 0xff0000
 
-	for index, item := range list.Items {
-		i := strconv.Itoa(index + 1)
+	for _, item := range list.Items {
 		var user, _ = bc.session.User(item.DiscordUserID)
 		embed.Fields = append(embed.Fields, &discordgo.MessageEmbedField{
-			Name:   "\n\n[ **" + i + "** ]** " + user.Username + "**",
+			Name:   "\n\n** " + user.Username + "**",
 			Value:  item.Description,
 			Inline: false,
 		})
