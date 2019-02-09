@@ -41,7 +41,7 @@ func OpenList(description, channelID string) string {
 }
 
 // CloseList ...
-func CloseList(channelID string) bool {
+func CloseList(list *List) bool {
 	query := `
 		UPDATE cart 
 		SET status = ? 
@@ -56,7 +56,7 @@ func CloseList(channelID string) bool {
 
 	defer stmt.Close()
 
-	_, err = stmt.Exec(0, 1, channelID)
+	_, err = stmt.Exec(0, 1, list.channelID)
 	if err != nil {
 		fmt.Println("Model CloseList [exec]: ", err)
 		return false

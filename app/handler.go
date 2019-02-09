@@ -40,11 +40,21 @@ func OpenList(bc *BotCommand) {
 
 // CloseList ...
 func CloseList(bc *BotCommand) {
-	ListItems(bc)
-	if models.CloseList(bc.message.ChannelID) {
+	list, err := models.GetOpenListByChannelID(bc.message.ChannelID)
+	if err != nil {
+		bc.session.ChannelMessageSend(bc.message.ChannelID, err.Error())
+		return
+	}
+
+	closed := models.CloseList(&list)
+	if closed {
 		bc.session.UpdateStatus(0, "Ingredientes na panela.")
 		bc.session.ChannelMessageSend(bc.message.ChannelID, "@here **Pedidos finalizados!**")
+		return
 	}
+
+	bc.session.ChannelMessageSend(bc.message.ChannelID, "@here Por algum motivo o carrinho não pode ser finalizado.")
+	return
 }
 
 // AddItem ...
@@ -99,7 +109,11 @@ func AddItem(bc *BotCommand) {
 func RemoveItem(bc *BotCommand) {
 	var item models.Item
 	item.DiscordUserID = bc.message.Author.ID
-	item = models.GetItem(&item, bc.message.ChannelID)
+	item, userErr := models.GetItem(&item, bc.message.ChannelID)
+	if userErr != nil {
+		bc.session.ChannelMessageSend(bc.message.ChannelID, bc.message.Author.Mention()+": "+userErr.Error())
+		return
+	}
 
 	deleted := models.RemoveItem(&item)
 	if deleted {
@@ -108,6 +122,26 @@ func RemoveItem(bc *BotCommand) {
 	}
 
 	bc.session.ChannelMessageSend(bc.message.ChannelID, bc.message.Author.Mention()+" **não** foi possivel **cancelar** seu pedido!")
+	return
+}
+
+// RepeatItem ...
+func RepeatItem(bc *BotCommand) {
+	list, _ := models.GetOpenListByChannelID(bc.message.ChannelID)
+	userHasItemInList := models.HasItem(&list, bc.message.Author.ID)
+
+	if userHasItemInList {
+		bc.session.ChannelMessageSend(bc.message.ChannelID, bc.message.Author.Mention()+" você já realizou seu pedido. Para **cancelar** digite `!cancelar`")
+		return
+	}
+
+	repeated, userErr := models.RepeatItem(bc.message.Author.ID, bc.message.ChannelID)
+	if repeated {
+		bc.session.ChannelMessageSend(bc.message.ChannelID, bc.message.Author.Mention()+" seu **pedido foi realizado** com sucesso.")
+		return
+	}
+
+	bc.session.ChannelMessageSend(bc.message.ChannelID, bc.message.Author.Mention()+": "+userErr.Error())
 	return
 }
 

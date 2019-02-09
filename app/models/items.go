@@ -1,6 +1,10 @@
 package models
 
-import "fmt"
+import (
+	"database/sql"
+	"errors"
+	"fmt"
+)
 
 // Item of the list
 type Item struct {
@@ -33,6 +37,48 @@ func AddItem(item *Item) bool {
 	return true
 }
 
+// RepeatItem ...
+func RepeatItem(DiscordUserID, ChannelID string) (added bool, userErr error) {
+	item, err := GetLastItem(DiscordUserID, ChannelID)
+	if err != nil {
+		fmt.Println("Model RepeatItem / GetLastItem: ", err)
+		return false, err
+	}
+
+	list, err := GetOpenListByChannelID(ChannelID)
+	if err != nil {
+		fmt.Println("Model RepeatItem / GetOpenListByChannelID: ", err)
+		return false, err
+	}
+
+	item.CartID = list.ID
+	added = AddItem(&item)
+	return added, userErr
+}
+
+// GetLastItem ...
+func GetLastItem(discordUserID, channelID string) (item Item, userErr error) {
+	query := `
+		SELECT item.id, item.description, item.discord_user_id 
+		FROM item
+		INNER JOIN cart ON item.cart_id = cart.id
+		WHERE cart.channel_id = ?
+		AND item.discord_user_id = ? 
+		ORDER BY item.created_at DESC
+	`
+	row := Connection.Mysql.QueryRow(query, channelID, discordUserID)
+	err := row.Scan(&item.ID, &item.Description, &item.DiscordUserID)
+
+	if err == sql.ErrNoRows {
+		userErr = errors.New("Este é seu primeiro pedido. Portanto não encontramos pedidos anteriores")
+	} else if err != nil {
+		userErr = errors.New("Erro ao encontrar último pedido")
+		fmt.Println("Model GetLastItem [scan]: ", err, sql.ErrNoRows)
+	}
+
+	return item, userErr
+}
+
 // RemoveItem ...
 func RemoveItem(item *Item) bool {
 	query := `
@@ -58,8 +104,7 @@ func RemoveItem(item *Item) bool {
 }
 
 // GetItem ...
-func GetItem(item *Item, channelID string) Item {
-	var getItem Item
+func GetItem(item *Item, channelID string) (getItem Item, userErr error) {
 	query := `
 		SELECT item.id, item.description, item.discord_user_id 
 		FROM item
@@ -68,13 +113,17 @@ func GetItem(item *Item, channelID string) Item {
 		AND cart.channel_id = ?
 		AND item.discord_user_id = ?
 	`
-	row := Connection.Mysql.QueryRow(query, item.DiscordUserID, channelID)
+	row := Connection.Mysql.QueryRow(query, channelID, item.DiscordUserID)
 	err := row.Scan(&getItem.ID, &getItem.Description, &getItem.DiscordUserID)
-	if err != nil {
-		fmt.Println("Model GetItem [scan]: ", err)
+
+	if err == sql.ErrNoRows {
+		userErr = errors.New("Você ainda não realizou nenhum pedido. Digite `!pedir [pedido]`")
+	} else if err != nil {
+		userErr = errors.New("Erro ao buscar último carrinho criado")
+		fmt.Println("Model GetItem [scan]: ", err, sql.ErrNoRows)
 	}
 
-	return getItem
+	return getItem, userErr
 }
 
 // GetItemsByListID ...
