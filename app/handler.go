@@ -131,3 +131,21 @@ func RaffleListItems(bc *BotCommand) {
 	embedRaffleListItems := EmbedRaffleListItems(Chosen, bc)
 	bc.session.ChannelMessageSendEmbed(bc.message.ChannelID, embedRaffleListItems)
 }
+
+// RevertListItems ...
+func RevertListItems(bc *BotCommand) {
+	list, _ := models.GetLastList(bc.message.ChannelID)
+	if !list.Status {
+		list.Status = true
+		updated := models.UpdateList(&list, bc.message.ChannelID)
+		if updated {
+			bc.session.ChannelMessageSend(bc.message.ChannelID, bc.message.Author.Mention()+" seu carrinho foi **re-aberto** com sucesso!")
+			return
+		}
+		bc.session.ChannelMessageSend(bc.message.ChannelID, bc.message.Author.Mention()+" não foi possivel **reabrir** seu carrinho!")
+		return
+	}
+
+	bc.session.ChannelMessageSend(bc.message.ChannelID, bc.message.Author.Mention()+" seu carrinho já esta aberto!")
+	return
+}

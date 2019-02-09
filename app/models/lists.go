@@ -12,6 +12,7 @@ type List struct {
 	ID          uint
 	Description string
 	channelID   string
+	Status      bool
 	Items       []Item
 }
 
@@ -103,6 +104,49 @@ func GetOpenListByChannelID(channelID string) (list List, userErr error) {
 	}
 
 	return list, userErr
+}
+
+// GetLastList ...
+func GetLastList(channelID string) (list List, userErr error) {
+	query := `
+		SELECT id, description, channel_id, status
+		FROM cart 
+		WHERE channel_id = ?
+	`
+	row := Connection.Mysql.QueryRow(query, channelID)
+	err := row.Scan(&list.ID, &list.Description, &list.channelID, &list.Status)
+	if err == sql.ErrNoRows {
+		userErr = errors.New("Nenhum carrinho foi criado nesta canal. Seja o primeiro digitando `!criar [nome]`")
+	} else if err != nil {
+		userErr = errors.New("Erro ao buscar último carrinho criado")
+		fmt.Println("Model GetLastList [scan]: ", err, sql.ErrNoRows)
+	}
+
+	return list, userErr
+}
+
+// UpdateList ...
+func UpdateList(list *List, channelID string) bool {
+	query := `
+		UPDATE cart 
+		SET status = ?
+		AND channel_id = ?
+	`
+	stmt, err := Connection.Mysql.Prepare(query)
+	if err != nil {
+		fmt.Println("Model UpdateList [prepare]: ", err)
+		return false
+	}
+
+	defer stmt.Close()
+
+	_, err = stmt.Exec(list.Status, channelID)
+	if err != nil {
+		fmt.Println("Model UpdateList [exec]: ", err)
+		return false
+	}
+
+	return true
 }
 
 // RaffleList ...
