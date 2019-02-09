@@ -1,6 +1,8 @@
 package models
 
 import (
+	"database/sql"
+	"errors"
 	"fmt"
 	"strconv"
 )
@@ -80,15 +82,18 @@ func CountOpenList(channelID string) uint {
 }
 
 // GetOpenListByChannelID ...
-func GetOpenListByChannelID(channelID string) List {
-	var list List
-	query := `SELECT id, description, channel_id FROM cart WHERE status = 1 and channel_id = ?`
+func GetOpenListByChannelID(channelID string) (list List, userErr error) {
+
+	query := `SELECTf id, description, channel_id FROM cart WHERE status = 1 and channel_id = ?`
 	row := Connection.Mysql.QueryRow(query, channelID)
 	err := row.Scan(&list.ID, &list.Description, &list.channelID)
-	if err != nil {
-		fmt.Println("Model GetOpenListByChannelID [scan]: ", err)
+	if err == sql.ErrNoRows {
+		userErr = errors.New("Não há um carrinho aberto, crie com o comando `!criar [nome]`")
+	} else if err != nil {
+		userErr = errors.New("Erro ao listar pedidos")
+		fmt.Println("Model GetOpenListByChannelID [scan]: ", err, sql.ErrNoRows)
 	}
-	return list
+	return list, userErr
 }
 
 // RaffleList ...
