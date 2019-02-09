@@ -22,6 +22,8 @@ func AddItem(item *Item) bool {
 		return false
 	}
 
+	defer stmt.Close()
+
 	_, err = stmt.Exec(item.Description, item.CartID, item.DiscordUserID)
 	if err != nil {
 		fmt.Println("Model AddItem [exec]: ", err)
@@ -43,6 +45,8 @@ func RemoveItem(item *Item) bool {
 		fmt.Println("Model RemoveItem [prepare]: ", err)
 		return false
 	}
+
+	defer stmt.Close()
 
 	_, err = stmt.Exec(&item.ID)
 	if err != nil {

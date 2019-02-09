@@ -26,6 +26,8 @@ func OpenList(description, channelID string) string {
 		fmt.Println("Model OpenList [prepare]: ", err)
 	}
 
+	defer stmt.Close()
+
 	res, err := stmt.Exec(description, 1, channelID)
 	if err != nil {
 		fmt.Println("Model OpenList [exec]: ", err)
@@ -50,6 +52,8 @@ func CloseList(channelID string) bool {
 		fmt.Println("Model CloseList [prepare]: ", err)
 		return false
 	}
+
+	defer stmt.Close()
 
 	_, err = stmt.Exec(0, 1, channelID)
 	if err != nil {
@@ -83,8 +87,12 @@ func CountOpenList(channelID string) uint {
 
 // GetOpenListByChannelID ...
 func GetOpenListByChannelID(channelID string) (list List, userErr error) {
-
-	query := `SELECTf id, description, channel_id FROM cart WHERE status = 1 and channel_id = ?`
+	query := `
+		SELECT id, description, channel_id 
+		FROM cart 
+		WHERE status = 1 
+		AND channel_id = ?
+	`
 	row := Connection.Mysql.QueryRow(query, channelID)
 	err := row.Scan(&list.ID, &list.Description, &list.channelID)
 	if err == sql.ErrNoRows {
@@ -93,6 +101,7 @@ func GetOpenListByChannelID(channelID string) (list List, userErr error) {
 		userErr = errors.New("Erro ao listar pedidos")
 		fmt.Println("Model GetOpenListByChannelID [scan]: ", err, sql.ErrNoRows)
 	}
+
 	return list, userErr
 }
 
