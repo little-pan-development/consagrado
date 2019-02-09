@@ -10,7 +10,7 @@ import (
 
 func main() {
 
-	discord, err := discordgo.New("Bot " + os.Getenv("DG_TOKEN"))
+	discord, err := discordgo.New("Bot " + os.Getenv("DISCORD_BOT_TOKEN"))
 	if err != nil {
 		fmt.Println("Failed to create discord session", err)
 	}
@@ -23,6 +23,7 @@ func main() {
 		fmt.Println("Unable to establish connection", err)
 	}
 
+	fmt.Println("https://discordapp.com/oauth2/authorize?client_id=" + os.Getenv("DISCORD_CLIENT_ID") + "&scope=bot&permissions=515136")
 	fmt.Println("Listening...")
 	lock := make(chan int)
 	<-lock
