@@ -112,7 +112,7 @@ func UpdateItem(bc *BotCommand) {
 	split := splitRegexp.Split(bc.message.Content, 2)
 
 	if len(split) == 1 {
-		_, err := bc.session.ChannelMessageSend(bc.message.ChannelID, bc.message.Author.Mention()+", digite seu pedido. Por exemplo, `!pedir Lentilha da vó` :heart:")
+		_, err := bc.session.ChannelMessageSend(bc.message.ChannelID, bc.message.Author.Mention()+", digite seu texto. Por exemplo, `!atualizar Feijão extra` :heart:")
 		if err != nil {
 			fmt.Println(err)
 		}
