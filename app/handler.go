@@ -120,17 +120,7 @@ func UpdateItem(bc *BotCommand) {
 	}
 	// MOVE THIS TO MIDDLEWARE
 
-	quantityOfList := models.CountOpenList(bc.message.ChannelID)
-	if quantityOfList == 0 {
-		_, err := bc.session.ChannelMessageSend(bc.message.ChannelID, "Você não tem um pedido aberto para atualizar.")
-		if err != nil {
-			fmt.Println(err)
-		}
-		return
-	}
-
-	list, _ := models.GetOpenListByChannelID(bc.message.ChannelID)
-	lastActiveItem, err := models.GetLastActiveItem(&list, bc.message.Author.ID)
+	lastActiveItem, err := models.GetLastActiveItem(bc.message.Author.ID, bc.message.ChannelID)
 
 	if err == sql.ErrNoRows {
 		bc.session.ChannelMessageSend(bc.message.ChannelID, bc.message.Author.Mention()+" você não tem um pedido aberto para atualizar.")
@@ -138,7 +128,7 @@ func UpdateItem(bc *BotCommand) {
 	}
 
 	if err != sql.ErrNoRows && err != nil {
-		bc.session.ChannelMessageSend(bc.message.ChannelID, bc.message.Author.Mention()+" erro ao adicionar ao pedido.")
+		bc.session.ChannelMessageSend(bc.message.ChannelID, bc.message.Author.Mention()+" erro ao atualizar ao pedido.")
 		return
 	}
 

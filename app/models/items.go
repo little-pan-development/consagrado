@@ -80,7 +80,7 @@ func GetLastItem(discordUserID, channelID string) (item Item, userErr error) {
 }
 
 // GetLastActiveItem ...
-func GetLastActiveItem(list *List, author string) (itemID int, err error) {
+func GetLastActiveItem(discordUserID, channelID string) (itemID int, err error) {
 	query := `
 		SELECT item.id
 		FROM item
@@ -90,7 +90,7 @@ func GetLastActiveItem(list *List, author string) (itemID int, err error) {
 		AND item.discord_user_id = ?
 		LIMIT 1
 	`
-	row := Connection.Mysql.QueryRow(query, list.channelID, author)
+	row := Connection.Mysql.QueryRow(query, channelID, discordUserID)
 	err = row.Scan(&itemID)
 	if err != nil && err != sql.ErrNoRows {
 		fmt.Println("Model getLastActiveItem [scan]: ", err)
