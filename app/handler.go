@@ -142,8 +142,7 @@ func UpdateItem(bc *BotCommand) {
 		return
 	}
 
-	// FIXME: Update line break before feature release
-	updated := models.UpdateItem(lastActiveItem, "\n\r"+split[1])
+	updated := models.UpdateItem(lastActiveItem, "\n"+split[1])
 	if updated {
 		bc.session.ChannelMessageSend(bc.message.ChannelID, bc.message.Author.Mention()+" **pedido atualizado** com sucesso.")
 		return
