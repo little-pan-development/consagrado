@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"regexp"
 
@@ -102,7 +103,43 @@ func AddItem(bc *BotCommand) {
 
 	bc.session.ChannelMessageSend(bc.message.ChannelID, bc.message.Author.Mention()+" por algum motivo seu pedido não foi realizado. Entre em contato com um administrador.")
 	return
+}
 
+// UpdateItem ...
+func UpdateItem(bc *BotCommand) {
+	// MOVE THIS TO MIDDLEWARE
+	splitRegexp := regexp.MustCompile("[\n| ]")
+	split := splitRegexp.Split(bc.message.Content, 2)
+
+	if len(split) == 1 {
+		_, err := bc.session.ChannelMessageSend(bc.message.ChannelID, bc.message.Author.Mention()+", digite seu texto. Por exemplo, `!atualizar Feijão extra` :heart:")
+		if err != nil {
+			fmt.Println(err)
+		}
+		return
+	}
+	// MOVE THIS TO MIDDLEWARE
+
+	lastActiveItem, err := models.GetLastActiveItem(bc.message.Author.ID, bc.message.ChannelID)
+
+	if err == sql.ErrNoRows {
+		bc.session.ChannelMessageSend(bc.message.ChannelID, bc.message.Author.Mention()+" você não tem um pedido aberto para atualizar.")
+		return
+	}
+
+	if err != sql.ErrNoRows && err != nil {
+		bc.session.ChannelMessageSend(bc.message.ChannelID, bc.message.Author.Mention()+" erro ao atualizar ao pedido.")
+		return
+	}
+
+	updated := models.UpdateItem(lastActiveItem, "\n"+split[1])
+	if updated {
+		bc.session.ChannelMessageSend(bc.message.ChannelID, bc.message.Author.Mention()+" **pedido atualizado** com sucesso.")
+		return
+	}
+
+	bc.session.ChannelMessageSend(bc.message.ChannelID, bc.message.Author.Mention()+" por algum motivo seu pedido não foi atualizado. Entre em contato com um administrador.")
+	return
 }
 
 // RemoveItem ...

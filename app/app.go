@@ -43,6 +43,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	router.Handle("!criar", OpenList)
 	router.Handle("!finalizar", CloseList)
 	router.Handle("!pedir", AddItem)
+	router.Handle("!adicionar", UpdateItem)
 	router.Handle("!pedidos", ListItems)
 	router.Handle("!repetir", RepeatItem)
 	router.Handle("!reverter", RevertListItems)

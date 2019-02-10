@@ -79,6 +79,50 @@ func GetLastItem(discordUserID, channelID string) (item Item, userErr error) {
 	return item, userErr
 }
 
+// GetLastActiveItem ...
+func GetLastActiveItem(discordUserID, channelID string) (itemID int, err error) {
+	query := `
+		SELECT item.id
+		FROM item
+		INNER JOIN cart ON item.cart_id = cart.id
+		WHERE cart.status = TRUE
+		AND cart.channel_id = ?
+		AND item.discord_user_id = ?
+		LIMIT 1
+	`
+	row := Connection.Mysql.QueryRow(query, channelID, discordUserID)
+	err = row.Scan(&itemID)
+	if err != nil && err != sql.ErrNoRows {
+		fmt.Println("Model getLastActiveItem [scan]: ", err)
+	}
+
+	return itemID, err
+}
+
+// UpdateItem ...
+func UpdateItem(itemID int, description string) bool {
+	query := `
+		UPDATE item 
+		SET description = CONCAT(description, ?)
+		WHERE id = ?
+	`
+	stmt, err := Connection.Mysql.Prepare(query)
+	if err != nil {
+		fmt.Println("Model UpdateItem [prepare]: ", err)
+		return false
+	}
+
+	defer stmt.Close()
+
+	_, err = stmt.Exec(description, itemID)
+	if err != nil {
+		fmt.Println("Model UpdateItem [exec]: ", err)
+		return false
+	}
+
+	return true
+}
+
 // RemoveItem ...
 func RemoveItem(item *Item) bool {
 	query := `
