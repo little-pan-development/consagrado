@@ -138,7 +138,7 @@ func UpdateItem(bc *BotCommand) {
 		return
 	}
 
-	bc.session.ChannelMessageSend(bc.message.ChannelID, bc.message.Author.Mention()+" por algum motivo seu pedido não foi realizado. Entre em contato com um administrador.")
+	bc.session.ChannelMessageSend(bc.message.ChannelID, bc.message.Author.Mention()+" por algum motivo seu pedido não foi atualizado. Entre em contato com um administrador.")
 	return
 }
 
