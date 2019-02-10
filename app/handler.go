@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"regexp"
 
@@ -102,7 +103,54 @@ func AddItem(bc *BotCommand) {
 
 	bc.session.ChannelMessageSend(bc.message.ChannelID, bc.message.Author.Mention()+" por algum motivo seu pedido não foi realizado. Entre em contato com um administrador.")
 	return
+}
 
+// UpdateItem ...
+func UpdateItem(bc *BotCommand) {
+	// MOVE THIS TO MIDDLEWARE
+	splitRegexp := regexp.MustCompile("[\n| ]")
+	split := splitRegexp.Split(bc.message.Content, 2)
+
+	if len(split) == 1 {
+		_, err := bc.session.ChannelMessageSend(bc.message.ChannelID, bc.message.Author.Mention()+", digite seu pedido. Por exemplo, `!pedir Lentilha da vó` :heart:")
+		if err != nil {
+			fmt.Println(err)
+		}
+		return
+	}
+	// MOVE THIS TO MIDDLEWARE
+
+	quantityOfList := models.CountOpenList(bc.message.ChannelID)
+	if quantityOfList == 0 {
+		_, err := bc.session.ChannelMessageSend(bc.message.ChannelID, "Você não tem um pedido aberto para atualizar.")
+		if err != nil {
+			fmt.Println(err)
+		}
+		return
+	}
+
+	list, _ := models.GetOpenListByChannelID(bc.message.ChannelID)
+	lastActiveItem, err := models.GetLastActiveItem(&list, bc.message.Author.ID)
+
+	if err == sql.ErrNoRows {
+		bc.session.ChannelMessageSend(bc.message.ChannelID, bc.message.Author.Mention()+" você não tem um pedido aberto para atualizar.")
+		return
+	}
+
+	if err != sql.ErrNoRows && err != nil {
+		bc.session.ChannelMessageSend(bc.message.ChannelID, bc.message.Author.Mention()+" erro ao adicionar ao pedido.")
+		return
+	}
+
+	// FIXME: Update line break before feature release
+	updated := models.UpdateItem(lastActiveItem, "\n\r"+split[1])
+	if updated {
+		bc.session.ChannelMessageSend(bc.message.ChannelID, bc.message.Author.Mention()+" **pedido atualizado** com sucesso.")
+		return
+	}
+
+	bc.session.ChannelMessageSend(bc.message.ChannelID, bc.message.Author.Mention()+" por algum motivo seu pedido não foi realizado. Entre em contato com um administrador.")
+	return
 }
 
 // RemoveItem ...
