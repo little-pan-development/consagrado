@@ -1,35 +1,16 @@
-# Organizar comida em grupo via Discord
+# Install
 
-Este BOT para discord feito em GO e com banco de dados MySQL te ajudará a pedir comida (ou qualquer coisa) com seus amigos! 
+Clone the project:
+`
+`$ git clone git@github.com:little-pan-development/palmirinha.git
+$ cd palmirinha
+$ cp docker/development/env.example docker/development/env`
 
-# Comandos
+Edit this file with your configuration and run:
 
-## !ajuda
-Exibe esta tela de ajuda
+`$ make dev-up`
 
-## !criar
-Cria um carrinho para você e todos do canal colocarem seus pedidos.
+For more comands:
+`$ make help`
 
-## !pedir Marmitex
-Adiciona o pedido Marmitex em seu nome no carrinho criado neste canal.
-
-## !cancelar
-Cancela o seu pedido no carrinho deste canal.
-
-## !pedidos
-Lista todos pedidos do carrinho aberto neste canal.
-
-## !sortear
-Só pode antes de finalizar. Seleciona uma pessoa aleatória dentre os pedidos do carrinho aberto para pedir hoje!
-
-## !finalizar
-Finaliza carrinho aberto no canal e lista todos os pedidos do mesmo.
-
-## !chegou
-Avisa no canal que a comida chegou.
-
-Não poderia ser mais simples.
-
-If you wish for English support just create an issue. By now it's only on our roadmap.
-
-**esse repositório não é afiliado à Palmirinha Corp.**
+Enjoy
