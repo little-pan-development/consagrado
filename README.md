@@ -1,16 +1,25 @@
-# Install
+# Palmirinha
 
-Clone the project:
-`
-`$ git clone git@github.com:little-pan-development/palmirinha.git
+Bot responsible for organizing orders via Discord
+
+## Install:
+
+```bash
+$ git clone git@github.com:little-pan-development/palmirinha.git
 $ cd palmirinha
-$ cp docker/development/env.example docker/development/env`
+$ cp docker/development/env.example docker/development/env
+```
 
 Edit this file with your configuration and run:
 
-`$ make dev-up`
+```bash
+$ make dev-up
+```
 
 For more comands:
-`$ make help`
 
-Enjoy
+```bash
+$ make help
+```
+
+Enjoy :)
