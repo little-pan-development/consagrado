@@ -2,7 +2,7 @@
 
 Bot responsible for organizing orders via Discord
 
-## Install:
+## Install
 
 ```bash
 $ git clone git@github.com:little-pan-development/palmirinha.git
