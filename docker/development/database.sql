@@ -1,6 +1,11 @@
 CREATE SCHEMA IF NOT EXISTS `palmirinha` DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci;
 USE `palmirinha` ;
 
+SET foreign_key_checks = 0;
+DROP TABLE IF EXISTS  `palmirinha`.`cart`;
+DROP TABLE IF EXISTS  `palmirinha`.`item`;
+SET foreign_key_checks = 1;
+
 -- -----------------------------------------------------
 -- Table `palmirinha`.`cart`
 -- -----------------------------------------------------

@@ -1,7 +1,9 @@
 #!/bin/bash
-
 .SILENT:
 .PHONY: help
+
+include docker/development/env
+export
 
 ## dev | Create and start containers
 dev-up:
@@ -10,6 +12,11 @@ dev-up:
 ## dev | Follow containers logs
 dev-logs:
 	@docker-compose -f docker/development/docker-compose.yml logs -f ${service}
+
+## dev | Install migrations
+dev-migration:
+	@docker cp docker/development/database.sql "${MYSQL_HOST}":/
+	@docker exec -it "${MYSQL_HOST}" bash -c "mysql -u ${MYSQL_USER} -p${MYSQL_PASSWORD} ${MYSQL_DATABASE} < /database.sql"
 
 ## dev | Stop and remove containers
 dev-down:
