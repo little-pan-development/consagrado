@@ -36,7 +36,7 @@ func OpenList(bc *BotCommand) {
 	id := models.OpenList(split[1], channelID)
 
 	bc.session.UpdateStatus(0, "Faça seu pedido..")
-	bc.session.ChannelMessageSend(channelID, "Carrinho `#"+id+" "+split[1]+"` criado com sucesso!")
+	bc.session.ChannelMessageSend(channelID, "@here Um novo carrinho (`#"+id+" "+split[1]+"`) foi criado, faça seu pedido :yum:")
 }
 
 // CloseList ...
