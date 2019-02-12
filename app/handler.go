@@ -47,6 +47,10 @@ func CloseList(bc *BotCommand) {
 		return
 	}
 
+	list.Items = models.GetItemsByListID(&list)
+	embedListItems := EmbedListItems(&list, bc)
+	bc.session.ChannelMessageSendEmbed(bc.message.ChannelID, embedListItems)
+
 	closed := models.CloseList(&list)
 	if closed {
 		bc.session.UpdateStatus(0, "Ingredientes na panela.")
