@@ -14,6 +14,7 @@ Edit this file with your configuration and run:
 
 ```bash
 $ make dev-up
+$ make dev-migration
 ```
 
 For more comands:
