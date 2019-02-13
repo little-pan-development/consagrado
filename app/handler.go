@@ -228,3 +228,15 @@ func RevertListItems(bc *BotCommand) {
 	bc.session.ChannelMessageSend(bc.message.ChannelID, bc.message.Author.Mention()+" seu carrinho já esta aberto!")
 	return
 }
+
+// OrderCame ...
+func OrderCame(bc *BotCommand) {
+	bc.session.ChannelMessageSend(bc.message.ChannelID, "@here Pessoal chegou a comida! :yum:")
+	return
+}
+
+// Help ...
+func Help(bc *BotCommand) {
+	embedHelpList := EmbedHelpList()
+	bc.session.ChannelMessageSendEmbed(bc.message.ChannelID, embedHelpList)
+}

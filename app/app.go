@@ -48,6 +48,8 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	router.Handle("!repetir", RepeatItem)
 	router.Handle("!reverter", RevertListItems)
 	router.Handle("!sortear", RaffleListItems)
+	router.Handle("!chegou", OrderCame)
+	router.Handle("!ajuda", Help)
 
 	bc := NewBotCommand(router.FindHandler, s, m)
 	command := strings.Split(m.Content, " ")[0]
