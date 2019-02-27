@@ -1,5 +1,3 @@
-/data
 .idea
 /.vscode
 /app/tmp*
-/docker/development/env

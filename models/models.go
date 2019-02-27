@@ -1,7 +1,7 @@
 package models
 
 import (
-	"github.com/palmirinha/app/conn"
+	"conn"
 )
 
 // Connection ...

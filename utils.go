@@ -3,8 +3,9 @@ package main
 import (
 	"strconv"
 
+	"models"
+
 	"github.com/bwmarrin/discordgo"
-	"github.com/palmirinha/app/models"
 )
 
 // EmbedListItems ...

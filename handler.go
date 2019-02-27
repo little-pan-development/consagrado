@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"regexp"
 
-	"github.com/palmirinha/app/models"
+	"models"
 )
 
 // OpenList ...
