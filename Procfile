@@ -1,1 +1,1 @@
-web: $GOPATH/bin/consagrado
+web: consagrado
