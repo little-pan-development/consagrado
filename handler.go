@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"regexp"
 
-	"github.com/brunobandev/consagrado/models"
+	"github.com/little-pan-development/consagrado/models"
 )
 
 // OpenList ...
