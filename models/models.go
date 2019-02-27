@@ -1,7 +1,7 @@
 package models
 
 import (
-	"conn"
+	"github.com/brunobandev/consagrado/conn"
 )
 
 // Connection ...

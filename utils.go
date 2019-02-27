@@ -3,7 +3,7 @@ package main
 import (
 	"strconv"
 
-	"models"
+	"github.com/brunobandev/consagrado/models"
 
 	"github.com/bwmarrin/discordgo"
 )
