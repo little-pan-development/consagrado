@@ -1,1 +1,1 @@
-worker: consagrado
+web: consagrado
