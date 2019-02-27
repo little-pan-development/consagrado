@@ -1,1 +1,1 @@
-worker: consagrado
+worker: go run main.go
