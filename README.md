@@ -1,4 +1,4 @@
-# Palmirinha
+# Consagrado
 
 Bot responsible for organizing orders via Discord
 
