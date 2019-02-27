@@ -1,6 +1,6 @@
 {
-	"ImportPath": "github.com/brunobandev/consagrado",
-	"GoVersion": "go1.11",
+	"ImportPath": "github.com/little-pan-development/consagrado",
+	"GoVersion": "go1.12",
 	"GodepVersion": "v80",
 	"Packages": [
 		"./..."
