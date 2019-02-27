@@ -1,1 +1,1 @@
-web: consagrado
+web: go run main.go
