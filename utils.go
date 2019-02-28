@@ -17,7 +17,7 @@ func EmbedListItems(list *models.List, bc *BotCommand) *discordgo.MessageEmbed {
 
 	embed.Author.Name = "Consagrado"
 	embed.Author.URL = "https://github.com/little-pan-development/consagrado"
-	embed.Author.IconURL = "https://github.com/little-pan-development/consagrado/static/images/consagrado.png"
+	embed.Author.IconURL = "https://raw.githubusercontent.com/little-pan-development/consagrado/master/static/images/consagrado.png"
 
 	embed.Title = "**Comanda:** __" + list.Description + "__"
 	embed.Description = "**" + strconv.Itoa(len(list.Items)) + "** pedido(s) até o momento:"
@@ -44,7 +44,7 @@ func EmbedRaffleListItems(Chosen string, bc *BotCommand) *discordgo.MessageEmbed
 
 	embed.Author.Name = "Consagrado"
 	embed.Author.URL = "https://github.com/little-pan-development/consagrado"
-	embed.Author.IconURL = "https://github.com/little-pan-development/consagrado/static/images/consagrado.png"
+	embed.Author.IconURL = "https://raw.githubusercontent.com/little-pan-development/consagrado/master/static/images/consagrado.png"
 
 	embed.Title = "Parabéns! Hoje é com..."
 	embed.Description = user.Mention() + " contamos com você!"
@@ -64,7 +64,7 @@ func EmbedHelpList() *discordgo.MessageEmbed {
 	embed.Author = &discordgo.MessageEmbedAuthor{}
 	embed.Author.Name = "Consagrado"
 	embed.Author.URL = "https://github.com/little-pan-development/consagrado"
-	embed.Author.IconURL = "https://github.com/little-pan-development/consagrado/static/images/consagrado.png"
+	embed.Author.IconURL = "https://raw.githubusercontent.com/little-pan-development/consagrado/master/static/images/consagrado.png"
 
 	embed.Fields = []*discordgo.MessageEmbedField{}
 
