@@ -1,0 +1,28 @@
+version: '3.5'
+services:
+  app:
+    container_name: ${APPLICATION_NAME}
+    build: .
+    volumes:
+      - ../../:/go/src/${PROVIDER_NAME}/${PROVIDER_USER}/${PROVIDER_APP}
+    depends_on:
+      - db
+    ports:
+      - 8080:8080
+    env_file: env
+    networks:
+      - consagrado-net
+  db:
+    container_name: ${DATABASE_NAME}
+    image: mysql:5.7
+    volumes:
+      - ../../data:/var/lib/mysql:rw
+    ports:
+      - 33060:3306
+    restart: always
+    env_file: env
+    networks:
+      - consagrado-net
+networks:
+  consagrado-net:
+    driver: bridge

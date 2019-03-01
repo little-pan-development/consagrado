@@ -1,3 +1,5 @@
 .idea
 /.vscode
-/app/tmp*
+/tmp*
+/data
+*env
