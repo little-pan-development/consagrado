@@ -12,4 +12,5 @@ Our main communication channel between the company's areas was Discord. So, why 
 
 This project was born in *Brazil*, and there Consagrado is a "*loving*" way to call the waiter.
 
+
 **The project is being organized to accept new changes. Follow!**
