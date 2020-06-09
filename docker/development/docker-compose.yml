@@ -1,19 +1,19 @@
 version: '3.5'
 services:
-  app:
-    container_name: ${APPLICATION_NAME}
+  consagrado-app:
+    container_name: consagrado-app
     build: .
     volumes:
-      - ../../:/go/src/${PROVIDER_NAME}/${PROVIDER_USER}/${PROVIDER_APP}
+      - ../../app:/go/src/github.com/little-pan-development/consagrado
     depends_on:
-      - db
+      - consagrado-db
     ports:
       - 8080:8080
     env_file: env
     networks:
       - consagrado-net
-  db:
-    container_name: ${DATABASE_NAME}
+  consagrado-db:
+    container_name: consagrado-db
     image: mysql:5.7
     volumes:
       - ../../data:/var/lib/mysql:rw

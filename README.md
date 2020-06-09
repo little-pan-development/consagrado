@@ -28,6 +28,8 @@ Create a configuration file: `cp docker/development/env.example docker/developme
 
 Edit the newly created file with your information.
 
+Create an application [here](https://discord.com/developers/applications).
+
 Build an application with command: `make dev-up`
 
 Create the database structure by running: `make dev-migration`
