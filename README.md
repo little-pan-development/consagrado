@@ -1,3 +1,7 @@
+<p align="center">
+    <img src="static/images/consagrado.png">
+</p>
+
 # Consagrado Bot
 
 ***Problem:***
