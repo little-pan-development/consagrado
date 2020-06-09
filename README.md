@@ -1,4 +1,4 @@
-<p align="center">
+<p align="left">
     <img src="static/images/consagrado.png">
 </p>
 
