@@ -16,7 +16,7 @@ dev-logs:
 ## dev | Install migrations
 dev-migration:
 	@docker cp docker/development/database.sql "${MYSQL_HOST}":/
-	@docker exec -it "${MYSQL_HOST}" bash -c "mysql -u ${MYSQL_USER} -p${MYSQL_PASSWORD} ${MYSQL_DATABASE} < /database.sql"
+	@docker exec -it "${MYSQL_HOST}" bash -c "mysql -u ${MYSQL_USERNAME} -p${MYSQL_PASSWORD} ${MYSQL_DATABASE} < /database.sql"
 
 ## dev | Stop and remove containers
 dev-down:
