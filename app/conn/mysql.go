@@ -12,7 +12,7 @@ import (
 func Mysql() *sql.DB {
 
 	database := os.Getenv("MYSQL_DATABASE")
-	username := os.Getenv("MYSQL_USERNAME")
+	username := os.Getenv("MYSQL_USER")
 	password := os.Getenv("MYSQL_PASSWORD")
 	port := os.Getenv("MYSQL_PORT")
 	host := os.Getenv("MYSQL_HOST")
